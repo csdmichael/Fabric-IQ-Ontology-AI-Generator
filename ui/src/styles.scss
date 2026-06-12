@@ -1,0 +1,87 @@
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/display.css';
+
+:root {
+  --ion-color-primary: #0078d4;
+  --ion-color-primary-rgb: 0, 120, 212;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #006abd;
+  --ion-color-primary-tint: #1a86d8;
+  --ion-color-secondary: #243a5e;
+  --ion-color-light: #f5f9ff;
+  --ion-color-medium: #6b7b93;
+  --ion-color-dark: #102542;
+  --fabric-iq-shell-max-width: 1280px;
+  --fabric-iq-surface: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+}
+
+html,
+body,
+app-root,
+ion-app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, 'Segoe UI', sans-serif;
+  background: var(--fabric-iq-surface);
+  color: #102542;
+}
+
+main.app-shell {
+  width: min(100%, var(--fabric-iq-shell-max-width));
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.page-section {
+  margin-bottom: 1.5rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.visual-shell {
+  min-height: 280px;
+  border: 1px dashed rgba(0, 120, 212, 0.35);
+  border-radius: 20px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, #0078d4 0%, #49a8ff 100%);
+  color: #ffffff;
+}
+
+.muted {
+  color: #5f6b7a;
+}
+
+@media (max-width: 991px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  main.app-shell {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  ion-toolbar {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+}

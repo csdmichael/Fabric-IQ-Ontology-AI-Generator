@@ -1,0 +1,35 @@
+<ion-content fullscreen="true">
+  <section class="page-section">
+    <h1>Ontology editor</h1>
+    <p class="muted">{{ statusMessage }}</p>
+  </section>
+
+  <section class="page-section card-grid">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Metadata</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Ontology name</ion-label>
+          <ion-input [(ngModel)]="ontology.name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Description</ion-label>
+          <ion-textarea [(ngModel)]="ontology.description"></ion-textarea>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Business case</ion-label>
+          <ion-textarea [(ngModel)]="ontology.businessCase"></ion-textarea>
+        </ion-item>
+        <ion-button expand="block" (click)="saveOntology()">Save ontology</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <app-ontology-graph [ontology]="ontology"></app-ontology-graph>
+  </section>
+
+  <section class="page-section">
+    <app-entity-list [entities]="ontology.entities" (entitiesChange)="updateEntities($event)"></app-entity-list>
+  </section>
+</ion-content>

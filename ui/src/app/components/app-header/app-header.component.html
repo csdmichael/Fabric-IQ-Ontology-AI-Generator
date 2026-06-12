@@ -1,0 +1,13 @@
+<ion-header translucent="true">
+  <ion-toolbar class="brand-gradient">
+    <ion-title>Fabric IQ Ontology AI Generator</ion-title>
+    <ion-buttons slot="end">
+      @for (item of navItems; track item.path) {
+        <ion-button [routerLink]="item.path" routerLinkActive="ion-activated">
+          <ion-icon slot="start" [name]="item.icon"></ion-icon>
+          {{ item.label }}
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

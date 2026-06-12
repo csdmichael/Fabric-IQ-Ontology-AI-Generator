@@ -1,0 +1,45 @@
+<ion-content fullscreen="true">
+  <section class="page-section">
+    <h1>Settings</h1>
+    <p class="muted">{{ statusMessage }}</p>
+  </section>
+
+  <section class="page-section">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Fabric and Azure configuration</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Fabric workspace ID</ion-label>
+          <ion-input [(ngModel)]="settings.workspaceId"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Fabric capacity ID</ion-label>
+          <ion-input [(ngModel)]="settings.capacityId"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Fabric client ID</ion-label>
+          <ion-input [(ngModel)]="settings.clientId"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Fabric client secret</ion-label>
+          <ion-input [(ngModel)]="settings.clientSecret" type="password"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Tenant ID</ion-label>
+          <ion-input [(ngModel)]="settings.tenantId"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Blob storage container</ion-label>
+          <ion-input [(ngModel)]="settings.storageContainer"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Storage connection string</ion-label>
+          <ion-input [(ngModel)]="settings.storageConnectionString" type="password"></ion-input>
+        </ion-item>
+        <ion-button expand="block" (click)="saveSettings()">Save configuration</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </section>
+</ion-content>

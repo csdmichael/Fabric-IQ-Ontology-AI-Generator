@@ -1,0 +1,19 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Entities</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-list>
+      @for (entity of entities; track entity.id) {
+        <ion-item>
+          <ion-label position="stacked">Entity name</ion-label>
+          <ion-input [(ngModel)]="entity.name" (ionInput)="updateEntity()"></ion-input>
+          <ion-label position="stacked">Description</ion-label>
+          <ion-textarea [(ngModel)]="entity.description" (ionInput)="updateEntity()"></ion-textarea>
+          <ion-button color="danger" fill="clear" (click)="removeEntity(entity.id)">Remove</ion-button>
+        </ion-item>
+      }
+    </ion-list>
+    <ion-button expand="block" (click)="addEntity()">Add entity</ion-button>
+  </ion-card-content>
+</ion-card>

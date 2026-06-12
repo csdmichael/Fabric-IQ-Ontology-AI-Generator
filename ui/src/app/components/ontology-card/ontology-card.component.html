@@ -1,0 +1,21 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ ontology.name }}</ion-card-title>
+    <ion-card-subtitle>{{ ontology.updatedAt | date: 'mediumDate' }}</ion-card-subtitle>
+  </ion-card-header>
+  <ion-card-content>
+    <p>{{ ontology.description }}</p>
+    <ion-chip color="primary">{{ ontology.status }}</ion-chip>
+    <ion-text class="muted">{{ ontology.entities.length }} entities</ion-text>
+    <ion-buttons>
+      <ion-button [routerLink]="['/ontologies', ontology.id]">
+        <ion-icon slot="start" name="createOutline"></ion-icon>
+        Edit
+      </ion-button>
+      <ion-button color="danger" fill="clear" (click)="onDelete()">
+        <ion-icon slot="start" name="trashOutline"></ion-icon>
+        Delete
+      </ion-button>
+    </ion-buttons>
+  </ion-card-content>
+</ion-card>

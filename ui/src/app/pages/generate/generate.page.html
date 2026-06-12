@@ -1,0 +1,42 @@
+<ion-content fullscreen="true">
+  <section class="page-section">
+    <h1>Generate ontology draft</h1>
+    <p class="muted">Describe the business case, target domain, and Fabric data assets to seed an ontology draft.</p>
+  </section>
+
+  <section class="page-section card-grid">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Business case</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-textarea
+          auto-grow="true"
+          fill="outline"
+          label="Business case prompt"
+          labelPlacement="stacked"
+          [(ngModel)]="businessCase"
+        ></ion-textarea>
+        <ion-button expand="block" [disabled]="isGenerating" (click)="runGeneration()">
+          {{ isGenerating ? 'Generating…' : 'Generate draft ontology' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Generation output</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        @if (generatedOntology) {
+          <h2>{{ generatedOntology.name }}</h2>
+          <p>{{ generatedOntology.description }}</p>
+          <ion-text class="muted">{{ generatedOntology.entities.length }} suggested entities · {{ promptSummary }}</ion-text>
+          <ion-button expand="block" fill="outline" (click)="openEditor()">Open in editor</ion-button>
+        } @else {
+          <ion-text class="muted">Run generation to preview a draft ontology from your business narrative.</ion-text>
+        }
+      </ion-card-content>
+    </ion-card>
+  </section>
+</ion-content>

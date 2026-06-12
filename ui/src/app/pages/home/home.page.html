@@ -1,0 +1,40 @@
+<ion-content fullscreen="true">
+  <section class="page-section">
+    <ion-chip color="primary">Fabric IQ</ion-chip>
+    <h1>Turn plain-English business cases into draft Fabric ontologies.</h1>
+    <p class="muted">
+      Business teams can describe concepts, review suggested entities, and map them to Microsoft Fabric OneLake sources.
+    </p>
+    <ion-button routerLink="/generate">Start generation</ion-button>
+    <ion-button fill="outline" routerLink="/settings">Configure Fabric</ion-button>
+  </section>
+
+  <section class="page-section card-grid">
+    @for (card of summaryCards; track card.title) {
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>{{ card.title }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <h2>{{ card.value }}</h2>
+          <ion-text class="muted">{{ card.detail }}</ion-text>
+        </ion-card-content>
+      </ion-card>
+    }
+  </section>
+
+  <section class="page-section">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Recommended workflow</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ol>
+          <li>Connect Fabric workspace, storage, and AI services.</li>
+          <li>Describe the business case in plain English.</li>
+          <li>Review generated entities and bind them to OneLake tables or views.</li>
+        </ol>
+      </ion-card-content>
+    </ion-card>
+  </section>
+</ion-content>
