@@ -1,0 +1,23 @@
+Fabric IQ Ontology AI Generator project creation prompt
+
+Create a complete project scaffold for "Fabric IQ Ontology AI Generator".
+
+The application is a frontend UI for business teams to:
+- Write a business case in plain English.
+- Configure Microsoft Fabric and Azure connections.
+- Ask an AI agent to generate a draft Fabric ontology.
+- Review business entities and properties.
+- Bind ontology entities to OneLake tables and views.
+
+Scaffold requirements:
+- Angular 17 + Ionic 7 frontend using standalone components.
+- Node.js + TypeScript + Express backend.
+- Ontology CRUD routes and services.
+- Data source configuration routes and services.
+- AI generation flow with OpenAI/Azure OpenAI placeholder integration.
+- Azure Cosmos DB, Blob Storage, and Fabric/OneLake placeholder services.
+- Environment-based configuration.
+- Responsive layouts for web, tablet, and mobile.
+- Branded header/footer and ontology graph visualization shell.
+- Tests for UI services/pages and API health/OpenAI service behavior.
+- Documentation covering architecture, setup, environment variables, and MIT licensing.

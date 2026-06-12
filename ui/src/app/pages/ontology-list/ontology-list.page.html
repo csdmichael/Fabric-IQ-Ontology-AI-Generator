@@ -1,0 +1,23 @@
+<ion-content fullscreen="true">
+  <section class="page-section">
+    <h1>Ontologies</h1>
+    <p class="muted">Review generated drafts, refine entity definitions, and manage ontology versions.</p>
+    <ion-button routerLink="/ontologies/new">Create ontology</ion-button>
+  </section>
+
+  @if (ontologies.length) {
+    <section class="page-section card-grid">
+      @for (ontology of ontologies; track ontology.id) {
+        <app-ontology-card [ontology]="ontology" (delete)="removeOntology($event)"></app-ontology-card>
+      }
+    </section>
+  } @else {
+    <ion-text class="muted">No ontologies yet. Use AI generation or create one manually.</ion-text>
+  }
+
+  <ion-fab slot="fixed" horizontal="end" vertical="bottom">
+    <ion-fab-button routerLink="/ontologies/new" aria-label="Create ontology">
+      <ion-icon name="addOutline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

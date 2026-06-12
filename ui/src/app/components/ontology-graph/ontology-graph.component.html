@@ -1,0 +1,21 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Ontology visualization</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <div class="visual-shell">
+      <svg viewBox="0 0 640 240" width="100%" height="240" aria-label="Ontology entity graph preview">
+        @for (entity of ontology.entities; track entity.id; let index = $index) {
+          <g [attr.transform]="'translate(' + (20 + ((index % 3) * 205)) + ',' + (20 + (math.floor(index / 3) * 110)) + ')'">
+            <rect width="180" height="72" rx="16" fill="#eff6ff" stroke="#0078d4"></rect>
+            <text x="16" y="30" fill="#102542" font-size="16" font-weight="600">{{ entity.name }}</text>
+            <text x="16" y="52" fill="#5f6b7a" font-size="12">{{ entity.properties.length }} properties</text>
+          </g>
+        }
+      </svg>
+      @if (!ontology.entities.length) {
+        <ion-text class="muted">Generate or add entities to preview the ontology graph layout.</ion-text>
+      }
+    </div>
+  </ion-card-content>
+</ion-card>
