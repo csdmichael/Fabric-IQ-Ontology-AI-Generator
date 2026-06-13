@@ -63,16 +63,16 @@ authRouter.post(
 authRouter.post('/guest', withRateLimit(authRateLimit, (request, response, next) => {
   void controller.loginAsGuest(request, response).catch(next);
 }));
-authRouter.get('/me', withRateLimit(authReadRateLimit, requireAuth), (request, response, next) => {
+authRouter.get('/me', requireAuth, withRateLimit(authReadRateLimit, (request, response, next) => {
   void controller.me(request, response).catch(next);
-});
+}));
 authRouter.get(
   '/audit',
-  withRateLimit(authReadRateLimit, requireAuth),
+  requireAuth,
   requirePermission('users:read'),
-  (request, response, next) => {
+  withRateLimit(authReadRateLimit, (request, response, next) => {
     void controller.audit(request, response).catch(next);
-  }
+  })
 );
 
 export default authRouter;

@@ -13,6 +13,7 @@ const FALLBACK_LIMIT = 100;
  */
 export class LoginAuditService {
   private readonly fallback = new Map<string, LoginAuditRecord>();
+  private readonly fallbackOrder: string[] = [];
   private containerPromise: Promise<Container | null> | undefined;
 
   async list(limit = FALLBACK_LIMIT): Promise<LoginAuditRecord[]> {
@@ -54,8 +55,9 @@ export class LoginAuditService {
     };
 
     this.fallback.set(record.id, record);
+    this.fallbackOrder.push(record.id);
     while (this.fallback.size > FALLBACK_LIMIT) {
-      const oldestId = this.fallback.keys().next().value;
+      const oldestId = this.fallbackOrder.shift();
       if (!oldestId) {
         break;
       }

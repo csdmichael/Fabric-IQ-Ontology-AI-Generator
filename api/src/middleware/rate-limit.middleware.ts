@@ -12,14 +12,19 @@ interface RateLimitEntry {
 
 export const createRateLimit = ({ windowMs, maxRequests }: RateLimitOptions) => {
   const entries = new Map<string, RateLimitEntry>();
-
-  return (request: Request, response: Response, next: NextFunction): void => {
-    const now = Date.now();
+  const cleanup = (now = Date.now()): void => {
     for (const [key, entry] of entries) {
       if (entry.expiresAt <= now) {
         entries.delete(key);
       }
     }
+  };
+  const cleanupTimer = setInterval(() => cleanup(), windowMs);
+  cleanupTimer.unref?.();
+
+  return (request: Request, response: Response, next: NextFunction): void => {
+    const now = Date.now();
+    cleanup(now);
 
     const forwardedFor = request.header('x-forwarded-for')?.split(',')[0]?.trim();
     const clientAddress = forwardedFor || request.ip || 'unknown';
