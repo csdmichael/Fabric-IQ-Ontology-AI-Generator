@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -8,17 +8,25 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonContent,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
+  IonNote,
   IonText,
   IonTextarea
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { cloudUploadOutline, documentTextOutline, downloadOutline, rocketOutline } from 'ionicons/icons';
 
+import { AgentChatComponent } from '../../components/agent-chat/agent-chat.component';
 import { EntityListComponent } from '../../components/entity-list/entity-list.component';
 import { OntologyGraphComponent } from '../../components/ontology-graph/ontology-graph.component';
 import { Ontology, OntologyEntity } from '../../models/ontology.model';
+import { AuthService } from '../../services/auth.service';
+import { OntologyExportService } from '../../services/ontology-export.service';
 import { OntologyService } from '../../services/ontology.service';
+import { WorkflowService } from '../../services/workflow.service';
 
 @Component({
   selector: 'app-ontology-editor-page',
@@ -36,18 +44,36 @@ import { OntologyService } from '../../services/ontology.service';
     IonInput,
     IonTextarea,
     IonButton,
+    IonIcon,
     IonText,
+    IonNote,
     EntityListComponent,
-    OntologyGraphComponent
+    OntologyGraphComponent,
+    AgentChatComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OntologyEditorPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly ontologyService = inject(OntologyService);
+  private readonly workflow = inject(WorkflowService);
+  private readonly exporter = inject(OntologyExportService);
+  private readonly auth = inject(AuthService);
 
   protected ontology: Ontology = this.createEmptyOntology();
   protected statusMessage = 'Edit ontology metadata, entities, and data bindings.';
+  protected readonly busy = signal(false);
+  protected readonly canGenerator = computed(() => this.auth.hasPermission('agent:ontology-generator'));
+  protected readonly canBinder = computed(() => this.auth.hasPermission('agent:ontology-data-binder'));
+  protected readonly canSubmitBinding = computed(() => this.auth.hasPermission('ontology:submit-for-binding'));
+  protected readonly canSubmitDeployment = computed(() => this.auth.hasPermission('ontology:submit-for-deployment'));
+  protected readonly canDeploy = computed(() => this.auth.hasPermission('ontology:deploy-to-fabric'));
+
+  protected readonly agentContext = computed(() => ({ ontologyId: this.ontology.id, ontology: this.ontology }));
+
+  constructor() {
+    addIcons({cloudUploadOutline,rocketOutline,downloadOutline,documentTextOutline});
+  }
 
   ngOnInit(): void {
     const stateOntology = history.state.ontology as Ontology | undefined;
@@ -81,6 +107,7 @@ export class OntologyEditorPage implements OnInit {
       ? this.ontologyService.updateOntology(this.ontology.id, this.ontology)
       : this.ontologyService.createOntology(this.ontology);
 
+    this.busy.set(true);
     request$.subscribe({
       next: (ontology) => {
         this.ontology = {
@@ -90,6 +117,7 @@ export class OntologyEditorPage implements OnInit {
           updatedAt: new Date().toISOString()
         };
         this.statusMessage = 'Ontology saved successfully.';
+        this.busy.set(false);
       },
       error: () => {
         this.ontology = {
@@ -98,8 +126,69 @@ export class OntologyEditorPage implements OnInit {
           updatedAt: new Date().toISOString()
         };
         this.statusMessage = 'Saved locally. API unavailable.';
+        this.busy.set(false);
       }
     });
+  }
+
+  protected submitForBinding(): void {
+    if (!this.ontology.id) return;
+    this.busy.set(true);
+    this.workflow.submitForBinding(this.ontology.id).subscribe({
+      next: (updated) => {
+        this.ontology = updated;
+        this.statusMessage = 'Submitted for IT data binding.';
+        this.busy.set(false);
+      },
+      error: () => {
+        this.statusMessage = 'Submit-for-binding failed.';
+        this.busy.set(false);
+      }
+    });
+  }
+
+  protected submitForDeployment(): void {
+    if (!this.ontology.id) return;
+    this.busy.set(true);
+    this.workflow.submitForDeployment(this.ontology.id).subscribe({
+      next: (updated) => {
+        this.ontology = updated;
+        this.statusMessage = 'Submitted for admin approval and Fabric deployment.';
+        this.busy.set(false);
+      },
+      error: () => {
+        this.statusMessage = 'Submit-for-deployment failed.';
+        this.busy.set(false);
+      }
+    });
+  }
+
+  protected deployToFabric(): void {
+    if (!this.ontology.id) return;
+    this.busy.set(true);
+    this.workflow.deploy(this.ontology.id).subscribe({
+      next: (updated) => {
+        this.ontology = updated;
+        this.statusMessage = 'Deployment to Microsoft Fabric triggered.';
+        this.busy.set(false);
+      },
+      error: () => {
+        this.statusMessage = 'Deployment failed.';
+        this.busy.set(false);
+      }
+    });
+  }
+
+  protected async exportToWord(): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.exporter.exportToWord(this.ontology);
+      this.statusMessage = 'Word document downloaded.';
+    } catch {
+      this.statusMessage = 'Word export failed.';
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   private createEmptyOntology(): Ontology {

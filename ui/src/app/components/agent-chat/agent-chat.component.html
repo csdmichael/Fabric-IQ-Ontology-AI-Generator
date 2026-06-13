@@ -1,0 +1,37 @@
+<ion-card class="agent-chat">
+  <ion-card-header>
+    <ion-card-title>{{ title }}</ion-card-title>
+    @if (subtitle) {
+      <ion-note color="medium">{{ subtitle }}</ion-note>
+    }
+  </ion-card-header>
+  <ion-card-content>
+    <div class="transcript">
+      @for (turn of transcript(); track $index) {
+        <div [class]="'turn turn-' + turn.role">
+          <strong>{{ turn.role === 'user' ? 'You' : 'Agent' }}:</strong>
+          <span>{{ turn.text }}</span>
+        </div>
+      }
+      @if (busy()) {
+        <ion-spinner name="dots"></ion-spinner>
+      }
+      @if (error(); as err) {
+        <ion-note color="danger">{{ err }}</ion-note>
+      }
+    </div>
+
+    <ion-item>
+      <ion-label position="stacked">Message</ion-label>
+      <ion-input
+        [value]="draft()"
+        placeholder="Ask the agent..."
+        (ionInput)="draft.set($any($event).detail.value ?? '')"
+      ></ion-input>
+    </ion-item>
+    <ion-button expand="block" (click)="send()" [disabled]="busy() || !draft().trim()">
+      Send
+    </ion-button>
+    <ion-button expand="block" fill="clear" (click)="reset()">Reset thread</ion-button>
+  </ion-card-content>
+</ion-card>

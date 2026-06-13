@@ -39,4 +39,13 @@
       </ion-card-content>
     </ion-card>
   </section>
+
+  <section class="page-section">
+    <app-agent-chat
+      agentKey="ontology-generator"
+      title="Ontology Generator agent"
+      subtitle="Iterate on the draft with the business-language assistant before opening it in the editor."
+      [context]="agentContext()"
+    ></app-agent-chat>
+  </section>
 </ion-content>

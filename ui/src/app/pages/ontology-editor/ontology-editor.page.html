@@ -2,6 +2,7 @@
   <section class="page-section">
     <h1>Ontology editor</h1>
     <p class="muted">{{ statusMessage }}</p>
+    <ion-note>Status: {{ ontology.status }}</ion-note>
   </section>
 
   <section class="page-section card-grid">
@@ -22,7 +23,37 @@
           <ion-label position="stacked">Business case</ion-label>
           <ion-textarea [(ngModel)]="ontology.businessCase"></ion-textarea>
         </ion-item>
-        <ion-button expand="block" (click)="saveOntology()">Save ontology</ion-button>
+        <ion-button expand="block" (click)="saveOntology()" [disabled]="busy()">Save ontology</ion-button>
+        <ion-button expand="block" fill="outline" (click)="exportToWord()" [disabled]="busy() || !ontology.entities?.length">
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          Export to Word
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Workflow</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        @if (canSubmitBinding()) {
+          <ion-button expand="block" color="secondary" (click)="submitForBinding()" [disabled]="busy() || !ontology.id">
+            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+            Submit for IT data binding
+          </ion-button>
+        }
+        @if (canSubmitDeployment()) {
+          <ion-button expand="block" color="tertiary" (click)="submitForDeployment()" [disabled]="busy() || !ontology.id">
+            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+            Submit for deployment
+          </ion-button>
+        }
+        @if (canDeploy()) {
+          <ion-button expand="block" color="success" (click)="deployToFabric()" [disabled]="busy() || !ontology.id">
+            <ion-icon slot="start" name="rocket-outline"></ion-icon>
+            Deploy to Microsoft Fabric
+          </ion-button>
+        }
       </ion-card-content>
     </ion-card>
 
@@ -32,4 +63,26 @@
   <section class="page-section">
     <app-entity-list [entities]="ontology.entities" (entitiesChange)="updateEntities($event)"></app-entity-list>
   </section>
+
+  @if (canGenerator()) {
+    <section class="page-section">
+      <app-agent-chat
+        agentKey="ontology-generator"
+        title="Ontology Generator"
+        subtitle="Refine entities, properties, and relationships with the business-language assistant."
+        [context]="agentContext()"
+      ></app-agent-chat>
+    </section>
+  }
+
+  @if (canBinder()) {
+    <section class="page-section">
+      <app-agent-chat
+        agentKey="ontology-data-binder"
+        title="Ontology Data Binder"
+        subtitle="Map ontology properties to Fabric Lakehouse tables, views, and columns."
+        [context]="agentContext()"
+      ></app-agent-chat>
+    </section>
+  }
 </ion-content>

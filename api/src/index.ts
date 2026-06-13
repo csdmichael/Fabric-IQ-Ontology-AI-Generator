@@ -1,6 +1,8 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
+import swaggerUi from 'swagger-ui-express';
 
 import { environment } from './config/environment';
+import { openApiSpec } from './config/openapi';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { errorMiddleware } from './middleware/error.middleware';
 import apiRouter from './routes';
@@ -11,10 +13,27 @@ export const createApp = (): Express => {
   app.use(corsMiddleware);
   app.use(express.json());
   app.use('/api', apiRouter);
+
+  // OpenAPI / Swagger
+  app.get('/api/openapi.json', (_request: Request, response: Response) => {
+    response.status(200).json(openApiSpec);
+  });
+  app.use(
+    '/api/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(openApiSpec as unknown as object, {
+      explorer: true,
+      customSiteTitle: 'Fabric IQ API — Swagger',
+      swaggerOptions: { persistAuthorization: true }
+    })
+  );
+
   app.get('/', (_request: Request, response: Response) => {
     response.status(200).json({
       name: 'Fabric IQ Ontology AI Generator API',
-      status: 'running'
+      status: 'running',
+      docs: '/api/docs',
+      openapi: '/api/openapi.json'
     });
   });
   app.use((_request: Request, response: Response) => {

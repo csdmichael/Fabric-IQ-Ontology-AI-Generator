@@ -1,0 +1,96 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Directory & Roles</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-label position="stacked">Email</ion-label>
+          <ion-input
+            type="email"
+            placeholder="user@example.com"
+            [value]="draft().email"
+            (ionInput)="patchDraft({ email: $any($event).detail.value ?? '' })"
+          ></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Display name</ion-label>
+          <ion-input
+            [value]="draft().displayName"
+            (ionInput)="patchDraft({ displayName: $any($event).detail.value ?? '' })"
+          ></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Role</ion-label>
+          <ion-select
+            [value]="draft().role"
+            (ionChange)="patchDraft({ role: $any($event).detail.value })"
+          >
+            @for (role of roles; track role) {
+              <ion-select-option [value]="role">{{ role }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Auth method</ion-label>
+          <ion-select
+            [value]="draft().authMethod"
+            (ionChange)="patchDraft({ authMethod: $any($event).detail.value })"
+          >
+            @for (method of methods; track method) {
+              <ion-select-option [value]="method">{{ method }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label>Enabled</ion-label>
+          <ion-toggle
+            [checked]="draft().enabled"
+            (ionChange)="patchDraft({ enabled: $any($event).detail.checked })"
+          ></ion-toggle>
+        </ion-item>
+      </ion-list>
+      <ion-button expand="block" (click)="create()" [disabled]="busy()">Add user</ion-button>
+      @if (error(); as err) {
+        <ion-note color="danger">{{ err }}</ion-note>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Users</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (busy()) {
+        <ion-spinner name="dots"></ion-spinner>
+      }
+      <ion-list>
+        @for (record of records(); track record.id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ record.displayName }}</h2>
+              <p>{{ record.email }} &middot; {{ record.role }} &middot; {{ record.authMethod }}</p>
+            </ion-label>
+            <ion-select
+              slot="end"
+              [value]="record.role"
+              (ionChange)="update(record, { role: $any($event).detail.value })"
+            >
+              @for (role of roles; track role) {
+                <ion-select-option [value]="role">{{ role }}</ion-select-option>
+              }
+            </ion-select>
+            <ion-toggle
+              slot="end"
+              [checked]="record.enabled"
+              (ionChange)="update(record, { enabled: $any($event).detail.checked })"
+            ></ion-toggle>
+            <ion-button slot="end" color="danger" fill="clear" (click)="remove(record)">Remove</ion-button>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -1,0 +1,90 @@
+name: deploy-data-stores
+
+# Runs ONLY when Cosmos / Storage seed data or container definitions change.
+# Doc/readme edits, infra, app code etc. will NOT trigger this workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data-stores/**'
+      - '.github/workflows/deploy-data-stores.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'data-stores/**'
+      - '.github/workflows/deploy-data-stores.yml'
+  workflow_dispatch:
+    inputs:
+      seedUsers:
+        description: 'Seed the users container with App Owners'
+        required: true
+        default: 'true'
+      seedOntologies:
+        description: 'Seed sample ontology documents'
+        required: true
+        default: 'false'
+
+permissions:
+  id-token: write   # OIDC federated login to Azure
+  contents: read
+
+env:
+  WORKING_DIR: data-stores
+  AZURE_RESOURCE_GROUP: ai-myaacoub
+  COSMOS_ACCOUNT: cosmos-fabriciq-demo-01
+  COSMOS_DATABASE: fabriciq
+  STORAGE_ACCOUNT: aistoragemyaacoub
+
+jobs:
+  deploy:
+    name: apply container definitions + optional seed data
+    runs-on: ubuntu-latest
+    environment: prod
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install Cosmos + Blob SDKs
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-identity azure-cosmos azure-storage-blob
+
+      - name: Apply Cosmos container definitions
+        env:
+          COSMOS_ENDPOINT: https://${{ env.COSMOS_ACCOUNT }}.documents.azure.com:443/
+          COSMOS_DATABASE: ${{ env.COSMOS_DATABASE }}
+        run: python cosmos/apply_containers.py
+
+      - name: Apply Blob containers
+        env:
+          STORAGE_ACCOUNT: ${{ env.STORAGE_ACCOUNT }}
+        run: python blob/apply_containers.py
+
+      - name: Seed users (App Owners)
+        if: inputs.seedUsers != 'false'
+        env:
+          COSMOS_ENDPOINT: https://${{ env.COSMOS_ACCOUNT }}.documents.azure.com:443/
+          COSMOS_DATABASE: ${{ env.COSMOS_DATABASE }}
+        run: python cosmos/seed_users.py
+
+      - name: Seed sample ontologies
+        if: inputs.seedOntologies == 'true'
+        env:
+          COSMOS_ENDPOINT: https://${{ env.COSMOS_ACCOUNT }}.documents.azure.com:443/
+          COSMOS_DATABASE: ${{ env.COSMOS_DATABASE }}
+        run: python cosmos/seed_ontologies.py

@@ -1,7 +1,56 @@
 <ion-app>
-  <app-app-header></app-app-header>
-  <main class="app-shell">
-    <router-outlet></router-outlet>
-  </main>
-  <app-app-footer></app-app-footer>
+  @if (showAppChrome()) {
+    <ion-menu contentId="main-content" menuId="main-menu" side="start">
+      <ion-header class="menu-header">
+        <div class="brand-wrap">
+          <h1>{{ portalTitle }}</h1>
+          <p>{{ portalSubtitle }}</p>
+        </div>
+      </ion-header>
+      <ion-content>
+        @for (section of navSections(); track section.title) {
+          <div class="menu-section">
+            <h2>{{ section.title }}</h2>
+            <ion-list lines="none">
+              @for (item of section.items; track item.label) {
+                <ion-item [routerLink]="item.path" routerLinkActive="active-item">
+                  <ion-icon [name]="item.icon" slot="start"></ion-icon>
+                  <ion-label>{{ item.label }}</ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          </div>
+        }
+      </ion-content>
+    </ion-menu>
+
+    <ion-header class="top-header">
+      <ion-toolbar>
+        <ion-menu-button slot="start" menu="main-menu"></ion-menu-button>
+        <ion-title>{{ portalTitle }} — {{ portalSubtitle }}</ion-title>
+        <div slot="end" class="auth-controls">
+          @if (isAuthenticated() && currentUser(); as user) {
+            <ion-chip color="primary" outline="true" [title]="user.email">
+              <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+              <ion-label>{{ user.displayName || user.email }}</ion-label>
+            </ion-chip>
+            <ion-chip color="tertiary" outline="true">
+              <ion-label>{{ user.role }}</ion-label>
+            </ion-chip>
+            <ion-button fill="clear" size="small" (click)="onLogout()">
+              <ion-icon slot="start" name="log-out-outline"></ion-icon>
+              Sign out
+            </ion-button>
+          } @else {
+            <ion-button fill="clear" size="small" (click)="onLogin()">
+              <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+              Sign in
+            </ion-button>
+          }
+        </div>
+      </ion-toolbar>
+    </ion-header>
+  }
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
 </ion-app>

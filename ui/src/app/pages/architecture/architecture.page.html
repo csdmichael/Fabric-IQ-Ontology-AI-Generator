@@ -1,0 +1,31 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Project architecture</ion-card-title>
+      <ion-card-subtitle>{{ subtitle }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-note>
+        This page is the canonical, in-app reference for how the Fabric IQ
+        Ontology AI Generator is composed. Use it during onboarding, design
+        reviews, and security walkthroughs.
+      </ion-note>
+    </ion-card-content>
+  </ion-card>
+
+  @for (section of sections; track section.title) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ section.title }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>{{ section.intro }}</p>
+        <ul>
+          @for (item of section.bullets; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </ion-card-content>
+    </ion-card>
+  }
+</ion-content>

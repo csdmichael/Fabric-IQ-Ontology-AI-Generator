@@ -1,0 +1,95 @@
+name: deploy-fabric-ontology
+
+# Runs ONLY when Fabric views/ontology assets change OR when triggered by the API/UI
+# via repository_dispatch / workflow_dispatch with an ontology ID payload.
+# Doc/readme edits will NOT trigger this workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fabric/**'
+      - '.github/workflows/deploy-fabric-ontology.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'fabric/**'
+      - '.github/workflows/deploy-fabric-ontology.yml'
+  workflow_dispatch:
+    inputs:
+      ontologyId:
+        description: 'Ontology document ID to deploy (leave blank to deploy all bundled ontologies)'
+        required: false
+      includeViews:
+        description: 'Also (re)deploy supporting Fabric SQL views'
+        required: false
+        default: 'true'
+  repository_dispatch:
+    types: [deploy-ontology]
+
+permissions:
+  id-token: write   # OIDC federated login to Azure
+  contents: read
+
+env:
+  WORKING_DIR: fabric
+  FABRIC_WORKSPACE_ID: 2b2c447d-86e1-4982-a5b6-09d2e0f3482d
+
+jobs:
+  deploy:
+    name: deploy Fabric views + ontology
+    runs-on: ubuntu-latest
+    environment: prod
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install Fabric REST tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-identity requests pyyaml
+
+      - name: Resolve trigger payload
+        id: payload
+        run: |
+          ONTOLOGY_ID=""
+          INCLUDE_VIEWS="true"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ONTOLOGY_ID="${{ inputs.ontologyId }}"
+            INCLUDE_VIEWS="${{ inputs.includeViews }}"
+          elif [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            ONTOLOGY_ID="${{ github.event.client_payload.ontologyId }}"
+            INCLUDE_VIEWS="${{ github.event.client_payload.includeViews }}"
+          fi
+          echo "ontologyId=$ONTOLOGY_ID" >> "$GITHUB_OUTPUT"
+          echo "includeViews=${INCLUDE_VIEWS:-true}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy SQL views
+        if: steps.payload.outputs.includeViews == 'true'
+        env:
+          FABRIC_WORKSPACE_ID: ${{ env.FABRIC_WORKSPACE_ID }}
+        run: python deploy_views.py
+
+      - name: Deploy ontology
+        env:
+          FABRIC_WORKSPACE_ID: ${{ env.FABRIC_WORKSPACE_ID }}
+          ONTOLOGY_ID: ${{ steps.payload.outputs.ontologyId }}
+          BLOB_ACCOUNT_NAME: aistoragemyaacoub
+          BLOB_CONTAINER: fabric-ontologies
+          COSMOS_ENDPOINT: https://cosmos-fabriciq-demo-01.documents.azure.com:443/
+          COSMOS_DATABASE: fabriciq
+        run: python deploy_ontology.py

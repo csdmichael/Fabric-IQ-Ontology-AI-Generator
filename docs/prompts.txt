@@ -21,3 +21,42 @@ Scaffold requirements:
 - Branded header/footer and ontology graph visualization shell.
 - Tests for UI services/pages and API health/OpenAI service behavior.
 - Documentation covering architecture, setup, environment variables, and MIT licensing.
+
+
+Add authentication using OTP and Entra ID similar to this project: https://github.com/csdmichael/Fabric-IQ-Ontology-Parts-Shortages
+refer to authentication in this repo: C:\Projects\Fabric\Fabric-IQ-Ontology-Parts-Shortages .
+- Create 4 roles for users: business user, IT user, Admin, App Owner
+    - Business User can create business ontology entitiess, relationships, edit via ui or using foundry agent chat in ui. After reviewing ontology, user submit it for data binding which is done by IT user
+    - IT User can configure Fabric Lakehouse for tables, use its own foundry agent in ui to bind ontology business entities to data in one lake tables automatically and generate ontology files that get saved in blob storage.
+    - Admin can do all functionalities of business user and IT user plus can be able to trigger ONtology deployment to Fabric after IT User binds data to business entities and submits ontology for deployment
+    - App Owner can do everything Admin user does plus ability to maintain users to App (Add, edit, remove users and set their authentication method for OTP versus Entra ID)
+    - Domain for Entra ID authentication is: "@MngEnvMCAP829495.onmicrosoft.com"
+    - Add these users as App Owners: admin@MngEnvMCAP829495.onmicrosoft.com (use Entra ID to authenticate), myaacoub@MngEnvMCAP829495.onmicrosoft.com (use Entra ID to authenticate), myaacoub@microsoft.com (use OTP to authenticate)
+
+In Foundry, there should be 2 agents: 
+- Ontology Generator: to be used by business users to generate ontology business entities
+- Ontology data binder: to be used by IT Users to bind business entities to data in OneLake
+
+ Also, for ui, break side menu to sections: Business Ontology Builder, IT Ontology Data Integration, System Documentation. In system documentation, add pge to explain project architecture. Per ontology in UI, add ability to export Ontology to word document which saves all entities, description, relationships in different sections and well formatted in tables. For each entity, the table will have each property, its data type and description and table it is bound to and field in table or view.
+
+Azure Resources:
+
+- Subscription: 86b37969-9445-49cf-b03f-d8866235171c
+- Resource Group: ai-myaacoub
+- APIM Url: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.ApiManagement/service/ai-gateway-apim-poc-my/apim-apis
+- Foundry: https://002-ai-poc-private.services.ai.azure.com/api/projects/proj-default
+- Fabric: https://app.powerbi.com/groups/2b2c447d-86e1-4982-a5b6-09d2e0f3482d/list?ctid=b158173c-91f6-4f99-b5e9-aa9bcb463863&experience=power-bi
+- Cosmos DB: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.DocumentDB/databaseAccounts/cosmos-fabriciq-demo-01/DataExplorerBlade
+- Blob Storage Account - Container: https://portal.azure.com/#view/Microsoft_Azure_Storage/ContainerMenuBlade/~/overview/storageAccountId/%2Fsubscriptions%2F86b37969-9445-49cf-b03f-d8866235171c%2FresourceGroups%2Fai-myaacoub%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2Faistoragemyaacoub/path/fabric-ontologies
+- App Service Plan for UI and API: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Web/serverFarms/plan-fabriciq-b3
+- Email service to send otp and emails: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Communication/EmailServices/fabriciq-shortages-email-b3/resourceOverviewId
+
+Generate github secrets needed to authenticate to Azure and deploy the solution
+Host API and UI under same App Service plan mentioned
+Generate Github workflows in terraform to deploy different components. One Workflow for API, one for UI, one for foundry agents, one for fabric that takes views and ontologies and can be triggered from UI / API to deploy ontology, one for cosmos db and storage account objects
+The github workflows should only trigger for updated comonenets only. So, if ui code was changed, only ui workflow runs, same for API, same for foundry agents workflow, etc. If readme or docs were updated, no workflows run at all
+Leverage private endpoints and private vnet for backend apis and systems. Only frontend ui should be accessible in public internet. 
+
+For API, configure swagger
+Add section in readme for ui url, api url, api swagger url
+Update readme accordingly

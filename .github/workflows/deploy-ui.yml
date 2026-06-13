@@ -1,0 +1,144 @@
+name: deploy-ui
+
+# Runs ONLY when UI code changes.
+# Doc/readme edits, API changes, agent definitions, etc. will NOT trigger this workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/**'
+      - '.github/workflows/deploy-ui.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ui/**'
+      - '.github/workflows/deploy-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # OIDC federated login to Azure
+  contents: read
+
+env:
+  NODE_VERSION: '22.x'
+  WORKING_DIR: ui
+  AZURE_RESOURCE_GROUP: ai-myaacoub
+  AZURE_WEBAPP_NAME: ui-fabriciq-b3
+  AZURE_API_WEBAPP_NAME: api-fabriciq-b3
+
+jobs:
+  build:
+    name: build + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm test -- --watch=false --browsers=ChromeHeadlessCI --if-present
+        continue-on-error: true
+
+      - name: Inject build-time config (Entra clientId + API URL)
+        env:
+          ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
+          API_BASE_URL: https://${{ env.AZURE_API_WEBAPP_NAME }}.azurewebsites.net/api
+        run: |
+          set -e
+          test -n "$ENTRA_CLIENT_ID" || { echo "::error::ENTRA_CLIENT_ID secret is empty"; exit 1; }
+          sed -i "s|clientId: '[^']*'|clientId: '${ENTRA_CLIENT_ID}'|" src/environments/environment.prod.ts
+          sed -i "s|apiUrl: '[^']*'|apiUrl: '${API_BASE_URL}'|" src/environments/environment.prod.ts
+          echo "--- environment.prod.ts after injection ---"
+          grep -E 'apiUrl|clientId' src/environments/environment.prod.ts
+
+      - run: npm run build -- --configuration production
+
+      - name: Stage SSR + browser bundle (POSIX paths)
+        run: |
+          mkdir -p ../release/ui-stage
+          # Angular builds into dist/<app>/{browser,server}
+          APP_DIR=$(find dist -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          echo "App dist dir: $APP_DIR"
+          cp -r "$APP_DIR"/* ../release/ui-stage/
+          # If there's a top-level server.js produced by Angular SSR, copy it; otherwise create a
+          # minimal Express host that serves the browser folder.
+          if [ ! -f ../release/ui-stage/server.js ] && [ -f ../release/ui-stage/server/server.mjs ]; then
+            echo "Using SSR server.mjs as entrypoint"
+          fi
+
+      - name: Create Express host if SSR not present
+        run: |
+          if [ ! -f ../release/ui-stage/server.js ] && [ ! -f ../release/ui-stage/server/server.mjs ]; then
+            cat > ../release/ui-stage/server.js <<'EOF'
+          const express = require('express');
+          const path = require('path');
+          const app = express();
+          const browserDir = path.join(__dirname, 'browser');
+          app.use(express.static(browserDir, { maxAge: '1h' }));
+          app.get('*', (_req, res) => res.sendFile(path.join(browserDir, 'index.html')));
+          const port = process.env.PORT || 8080;
+          app.listen(port, () => console.log('UI listening on ' + port));
+          EOF
+            cat > ../release/ui-stage/package.json <<'EOF'
+          {
+            "name": "ui-host",
+            "private": true,
+            "version": "1.0.0",
+            "main": "server.js",
+            "scripts": { "start": "node server.js" },
+            "dependencies": { "express": "^4.19.2" }
+          }
+          EOF
+            (cd ../release/ui-stage && npm install --omit=dev --no-audit --no-fund)
+          fi
+
+      - name: Zip release
+        run: |
+          cd ../release/ui-stage
+          zip -r ../ui.zip . -x "*.map"
+          ls -lh ../ui.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-package
+          path: release/ui.zip
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    name: deploy to App Service
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ui-package
+          path: ./release
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy zip to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: release/ui.zip
+
+      - name: Restart UI
+        run: az webapp restart -g ${{ env.AZURE_RESOURCE_GROUP }} -n ${{ env.AZURE_WEBAPP_NAME }}
