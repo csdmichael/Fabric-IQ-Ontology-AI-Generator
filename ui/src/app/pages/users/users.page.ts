@@ -168,7 +168,8 @@ export class UsersPage implements OnInit {
   }
 
   formatTimestamp(value: string): string {
-    return new Date(value).toLocaleString();
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? 'Unknown time' : parsed.toLocaleString();
   }
 
   formatMethod(method: LoginAuditRecord['method']): string {

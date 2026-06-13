@@ -66,13 +66,18 @@ authRouter.post('/guest', withRateLimit(authRateLimit, (request, response, next)
 authRouter.get('/me', requireAuth, withRateLimit(authReadRateLimit, (request, response, next) => {
   void controller.me(request, response).catch(next);
 }));
-authRouter.get(
-  '/audit',
-  requireAuth,
-  requirePermission('users:read'),
-  withRateLimit(authReadRateLimit, (request, response, next) => {
-    void controller.audit(request, response).catch(next);
-  })
-);
+authRouter.get('/audit', (request, response, next) => {
+  authReadRateLimit(request, response, (rateLimitError?: unknown) => {
+    if (rateLimitError) {
+      next(rateLimitError);
+      return;
+    }
+    requireAuth(request, response, () => {
+      requirePermission('users:read')(request, response, () => {
+        void controller.audit(request, response).catch(next);
+      });
+    });
+  });
+});
 
 export default authRouter;

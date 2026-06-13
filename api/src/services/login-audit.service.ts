@@ -27,8 +27,11 @@ export class LoginAuditService {
     try {
       const { resources } = await container.items
         .query<LoginAuditRecord>({
-          query: `SELECT TOP ${normalizedLimit} * FROM c WHERE c.type = @type ORDER BY c.at DESC`,
-          parameters: [{ name: '@type', value: 'login_audit' }]
+          query: 'SELECT * FROM c WHERE c.type = @type ORDER BY c.at DESC OFFSET 0 LIMIT @limit',
+          parameters: [
+            { name: '@type', value: 'login_audit' },
+            { name: '@limit', value: normalizedLimit }
+          ]
         })
         .fetchAll();
       return this.sortAndLimit([...resources, ...fallbackEntries], normalizedLimit);
