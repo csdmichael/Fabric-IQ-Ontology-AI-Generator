@@ -164,8 +164,8 @@ export class AuthController {
     response.status(200).json(entries);
   }
 
-  private async recordFailure(
-    request: Request<any, any, any, any>,
+  private async recordFailure<TParams, TResBody, TReqBody, TQuery>(
+    request: Request<TParams, TResBody, TReqBody, TQuery>,
     method: AuthMethod,
     email: string | undefined,
     reason: string
@@ -179,7 +179,10 @@ export class AuthController {
     });
   }
 
-  private async recordSuccess(request: Request<any, any, any, any>, user: AuthenticatedUser): Promise<void> {
+  private async recordSuccess<TParams, TResBody, TReqBody, TQuery>(
+    request: Request<TParams, TResBody, TReqBody, TQuery>,
+    user: AuthenticatedUser
+  ): Promise<void> {
     await loginAuditService.record({
       method: user.authMethod,
       outcome: 'success',
@@ -191,7 +194,9 @@ export class AuthController {
     });
   }
 
-  private requestMetadata(request: Request<any, any, any, any>): { ipAddress?: string; userAgent?: string } {
+  private requestMetadata<TParams, TResBody, TReqBody, TQuery>(
+    request: Request<TParams, TResBody, TReqBody, TQuery>
+  ): { ipAddress?: string; userAgent?: string } {
     return {
       ipAddress: request.ip || undefined,
       userAgent: request.header('user-agent') ?? undefined

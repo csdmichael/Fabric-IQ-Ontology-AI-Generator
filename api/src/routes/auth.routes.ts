@@ -1,32 +1,68 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 
 import { AuthController } from '../controllers/auth.controller';
 import { requireAuth, requirePermission } from '../middleware/auth.middleware';
+import { createRateLimit } from '../middleware/rate-limit.middleware';
 import { EntraLoginBody, OtpRequestBody, OtpVerifyBody } from '../types/auth.types';
 
 const controller = new AuthController();
 const authRouter = Router();
+const authRateLimit = createRateLimit({ windowMs: 60_000, maxRequests: 10 });
+const authReadRateLimit = createRateLimit({ windowMs: 60_000, maxRequests: 30 });
 
-authRouter.post<unknown, unknown, { email?: string }>('/method', (request, response, next) => {
+authRouter.post(
+  '/method',
+  authRateLimit,
+  (
+    request: Request<Record<string, string>, unknown, { email?: string }>,
+    response: Response,
+    next: NextFunction
+  ) => {
   void controller.resolveMethod(request, response).catch(next);
-});
-authRouter.post<unknown, unknown, OtpRequestBody>('/otp/request', (request, response, next) => {
+  }
+);
+authRouter.post(
+  '/otp/request',
+  authRateLimit,
+  (
+    request: Request<Record<string, string>, unknown, OtpRequestBody>,
+    response: Response,
+    next: NextFunction
+  ) => {
   void controller.requestOtp(request, response).catch(next);
-});
-authRouter.post<unknown, unknown, OtpVerifyBody>('/otp/verify', (request, response, next) => {
+  }
+);
+authRouter.post(
+  '/otp/verify',
+  authRateLimit,
+  (
+    request: Request<Record<string, string>, unknown, OtpVerifyBody>,
+    response: Response,
+    next: NextFunction
+  ) => {
   void controller.verifyOtp(request, response).catch(next);
-});
-authRouter.post<unknown, unknown, EntraLoginBody>('/entra/login', (request, response, next) => {
+  }
+);
+authRouter.post(
+  '/entra/login',
+  authRateLimit,
+  (
+    request: Request<Record<string, string>, unknown, EntraLoginBody>,
+    response: Response,
+    next: NextFunction
+  ) => {
   void controller.loginWithEntra(request, response).catch(next);
-});
-authRouter.post('/guest', (request, response, next) => {
+  }
+);
+authRouter.post('/guest', authRateLimit, (request, response, next) => {
   void controller.loginAsGuest(request, response).catch(next);
 });
-authRouter.get('/me', requireAuth, (request, response, next) => {
+authRouter.get('/me', authReadRateLimit, requireAuth, (request, response, next) => {
   void controller.me(request, response).catch(next);
 });
 authRouter.get(
   '/audit',
+  authReadRateLimit,
   requireAuth,
   requirePermission('users:read'),
   (request, response, next) => {
