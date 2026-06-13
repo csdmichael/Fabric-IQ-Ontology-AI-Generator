@@ -29,7 +29,7 @@ describe('auth login audit', () => {
 
     const audit = await request(app)
       .get('/api/auth/audit')
-      .set('Authorization', `******;
+      .auth(successfulLogin.body.token, { type: 'bearer' });
 
     expect(audit.status).toBe(200);
     expect(audit.body).toEqual(

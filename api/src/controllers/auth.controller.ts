@@ -165,7 +165,7 @@ export class AuthController {
   }
 
   private async recordFailure(
-    request: Request,
+    request: Request<any, any, any, any>,
     method: AuthMethod,
     email: string | undefined,
     reason: string
@@ -179,7 +179,7 @@ export class AuthController {
     });
   }
 
-  private async recordSuccess(request: Request, user: AuthenticatedUser): Promise<void> {
+  private async recordSuccess(request: Request<any, any, any, any>, user: AuthenticatedUser): Promise<void> {
     await loginAuditService.record({
       method: user.authMethod,
       outcome: 'success',
@@ -191,7 +191,7 @@ export class AuthController {
     });
   }
 
-  private requestMetadata(request: Request): { ipAddress?: string; userAgent?: string } {
+  private requestMetadata(request: Request<any, any, any, any>): { ipAddress?: string; userAgent?: string } {
     return {
       ipAddress: request.ip || undefined,
       userAgent: request.header('user-agent') ?? undefined
