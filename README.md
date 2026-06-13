@@ -64,6 +64,125 @@ UI (Angular + Ionic)
 - npm 10+
 - A Chromium-based browser for Karma tests
 
+### Azure / GitHub Actions Bootstrap (one-time)
+
+The CI/CD workflows in [.github/workflows](.github/workflows) use **OIDC federation** from GitHub Actions to a User-Assigned Managed Identity (UAMI) in Azure — no client secrets stored in GitHub. The bootstrap below provisions the identity, grants it RBAC, and seeds the repository secrets needed by the workflows.
+
+> Run these once per environment. All `az role assignment create` calls are idempotent — re-running them is safe and is the verification step.
+
+#### Environment values used below
+
+| Variable | Value |
+| --- | --- |
+| Subscription | `86b37969-9445-49cf-b03f-d8866235171c` |
+| Tenant | `b158173c-91f6-4f99-b5e9-aa9bcb463863` |
+| Resource group | `ai-myaacoub` (westus2) |
+| UAMI name | `gha-fabriciq-ontology-oidc` |
+| UAMI clientId | `49a233cd-1eea-40b3-9636-6db6be5c289f` |
+| UAMI principalId | `c1f1d487-e149-450c-9847-528ed5401ff3` |
+| App Service Plan | `plan-fabriciq-b3` (B3 Linux) |
+| API web app | `api-fabriciq-b3` |
+| UI web app | `ui-fabriciq-b3` |
+| Storage account | `aistoragemyaacoub` |
+| Entra SPA app | `fabriciq-ontology-ui-spa-b3` (appId `29d4f0cc-f068-4848-8fe1-9e8841bd77e8`) |
+| GitHub repo | `csdmichael/Fabric-IQ-Ontology-AI-Generator` |
+
+Replace these with your own values when forking.
+
+#### 1. Create the resource group + UAMI
+
+```bash
+az group create --name ai-myaacoub --location westus2
+
+az identity create \
+  --name gha-fabriciq-ontology-oidc \
+  --resource-group ai-myaacoub \
+  --location westus2
+
+UAMI_CLIENT_ID=$(az identity show -g ai-myaacoub -n gha-fabriciq-ontology-oidc --query clientId -o tsv)
+UAMI_PRINCIPAL_ID=$(az identity show -g ai-myaacoub -n gha-fabriciq-ontology-oidc --query principalId -o tsv)
+```
+
+#### 2. Federate GitHub Actions → UAMI (OIDC, no secrets)
+
+Three federated credentials so the same UAMI can be used from `main`, pull requests, and the `production` environment:
+
+```bash
+REPO="csdmichael/Fabric-IQ-Ontology-AI-Generator"
+
+az identity federated-credential create \
+  --identity-name gha-fabriciq-ontology-oidc -g ai-myaacoub \
+  --name gh-main \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject "repo:${REPO}:ref:refs/heads/main" \
+  --audiences api://AzureADTokenExchange
+
+az identity federated-credential create \
+  --identity-name gha-fabriciq-ontology-oidc -g ai-myaacoub \
+  --name gh-pr \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject "repo:${REPO}:pull_request" \
+  --audiences api://AzureADTokenExchange
+
+az identity federated-credential create \
+  --identity-name gha-fabriciq-ontology-oidc -g ai-myaacoub \
+  --name gh-env-prod \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject "repo:${REPO}:environment:production" \
+  --audiences api://AzureADTokenExchange
+```
+
+#### 3. Grant RBAC to the UAMI (required for deploys)
+
+The two role assignments below are the **minimum** set for the currently-active workflows (`deploy-api`, `deploy-ui`). Both are idempotent — re-run any time to verify.
+
+```bash
+SUB=86b37969-9445-49cf-b03f-d8866235171c
+RG=ai-myaacoub
+STORAGE=aistoragemyaacoub
+
+# Contributor on the resource group — covers Microsoft.Web/* for app/zipdeploy
+az role assignment create \
+  --assignee-object-id "$UAMI_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Contributor" \
+  --scope "/subscriptions/${SUB}/resourceGroups/${RG}"
+
+# Storage Blob Data Owner — required for blob uploads/SAS issuance by the API
+az role assignment create \
+  --assignee-object-id "$UAMI_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Storage Blob Data Owner" \
+  --scope "/subscriptions/${SUB}/resourceGroups/${RG}/providers/Microsoft.Storage/storageAccounts/${STORAGE}"
+
+# Verify
+az role assignment list --assignee "$UAMI_PRINCIPAL_ID" --all -o table
+```
+
+Expected output (2 rows):
+
+```
+Principal                             Role                     Scope
+------------------------------------  -----------------------  ---------------------------------------------------------------------------
+49a233cd-1eea-40b3-9636-6db6be5c289f  Contributor              /subscriptions/.../resourceGroups/ai-myaacoub
+49a233cd-1eea-40b3-9636-6db6be5c289f  Storage Blob Data Owner  /subscriptions/.../resourceGroups/ai-myaacoub/providers/.../aistoragemyaacoub
+```
+
+> When you enable the deferred workflows (`deploy-foundry-agents`, `deploy-data-stores`, `deploy-fabric-ontology`, `deploy-infra`), add the corresponding least-privilege roles — typically `Azure AI Developer` (Foundry), `Cosmos DB Built-in Data Contributor` (data stores), and `Key Vault Secrets User` (KV access).
+
+#### 4. Seed GitHub repository secrets
+
+```bash
+gh secret set AZURE_CLIENT_ID       -R "$REPO" -b "$UAMI_CLIENT_ID"
+gh secret set AZURE_TENANT_ID       -R "$REPO" -b "b158173c-91f6-4f99-b5e9-aa9bcb463863"
+gh secret set AZURE_SUBSCRIPTION_ID -R "$REPO" -b "86b37969-9445-49cf-b03f-d8866235171c"
+gh secret set ENTRA_CLIENT_ID       -R "$REPO" -b "29d4f0cc-f068-4848-8fe1-9e8841bd77e8"
+gh secret set FOUNDRY_PROJECT_ENDPOINT -R "$REPO" -b "<your-foundry-endpoint>"
+gh secret set FABRIC_WORKSPACE_ID   -R "$REPO" -b "<your-fabric-workspace-id>"
+```
+
+> `KEY_VAULT_NAME` and `TF_STATE_*` are required only when the Key Vault + Terraform workflows are activated; leave them unset until then.
+
 ### UI Setup
 
 ```bash

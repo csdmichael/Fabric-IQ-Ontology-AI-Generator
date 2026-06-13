@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom, Observable } from 'rxjs';
 import {
   IonButton,
   IonCard,
@@ -151,12 +152,7 @@ export class LoginPage {
     return 'Sign-in failed. Please try again.';
   }
 
-  private callPromise<T>(observable: { subscribe: (...args: unknown[]) => unknown }): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      (observable as unknown as import('rxjs').Observable<T>).subscribe({
-        next: (value) => resolve(value),
-        error: (err) => reject(err)
-      });
-    });
+  private callPromise<T>(observable: Observable<T>): Promise<T> {
+    return firstValueFrom(observable);
   }
 }

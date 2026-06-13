@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
+  },
+  "overrides": {
+    "rxjs": "7.8.2"
   }
 }

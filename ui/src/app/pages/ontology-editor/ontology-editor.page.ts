@@ -168,7 +168,7 @@ export class OntologyEditorPage implements OnInit {
     this.busy.set(true);
     this.workflow.deploy(this.ontology.id).subscribe({
       next: (updated) => {
-        this.ontology = updated;
+        this.ontology = updated.ontology;
         this.statusMessage = 'Deployment to Microsoft Fabric triggered.';
         this.busy.set(false);
       },
