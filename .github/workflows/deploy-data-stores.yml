@@ -1,18 +1,16 @@
 name: deploy-data-stores
 
 # Runs ONLY when Cosmos / Storage seed data or container definitions change.
-# Doc/readme edits, infra, app code etc. will NOT trigger this workflow.
+# Workflow-file edits alone will NOT trigger this — use workflow_dispatch.
 on:
   push:
     branches: [main]
     paths:
       - 'data-stores/**'
-      - '.github/workflows/deploy-data-stores.yml'
   pull_request:
     branches: [main]
     paths:
       - 'data-stores/**'
-      - '.github/workflows/deploy-data-stores.yml'
   workflow_dispatch:
     inputs:
       seedUsers:

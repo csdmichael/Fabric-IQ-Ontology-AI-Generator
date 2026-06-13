@@ -1,18 +1,17 @@
 name: deploy-infra
 
-# Runs ONLY when Terraform infra files change.
-# Doc/readme edits, app code, agent definitions, etc. will NOT trigger this workflow.
+# Runs ONLY when Terraform infra files change (and only after
+# infra/terraform/** + tfstate backend are bootstrapped).
+# Workflow-file edits alone will NOT trigger this — use workflow_dispatch.
 on:
   push:
     branches: [main]
     paths:
       - 'infra/terraform/**'
-      - '.github/workflows/deploy-infra.yml'
   pull_request:
     branches: [main]
     paths:
       - 'infra/terraform/**'
-      - '.github/workflows/deploy-infra.yml'
   workflow_dispatch:
     inputs:
       apply:

@@ -1,18 +1,16 @@
 name: deploy-foundry-agents
 
 # Runs ONLY when Foundry agent definitions change.
-# Doc/readme edits, app code, infra, etc. will NOT trigger this workflow.
+# Workflow-file edits alone will NOT trigger this — use workflow_dispatch.
 on:
   push:
     branches: [main]
     paths:
       - 'foundry/**'
-      - '.github/workflows/deploy-foundry-agents.yml'
   pull_request:
     branches: [main]
     paths:
       - 'foundry/**'
-      - '.github/workflows/deploy-foundry-agents.yml'
   workflow_dispatch:
     inputs:
       agent:

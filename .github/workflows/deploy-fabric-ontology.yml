@@ -2,18 +2,16 @@ name: deploy-fabric-ontology
 
 # Runs ONLY when Fabric views/ontology assets change OR when triggered by the API/UI
 # via repository_dispatch / workflow_dispatch with an ontology ID payload.
-# Doc/readme edits will NOT trigger this workflow.
+# Workflow-file edits alone will NOT trigger this — use workflow_dispatch.
 on:
   push:
     branches: [main]
     paths:
       - 'fabric/**'
-      - '.github/workflows/deploy-fabric-ontology.yml'
   pull_request:
     branches: [main]
     paths:
       - 'fabric/**'
-      - '.github/workflows/deploy-fabric-ontology.yml'
   workflow_dispatch:
     inputs:
       ontologyId:

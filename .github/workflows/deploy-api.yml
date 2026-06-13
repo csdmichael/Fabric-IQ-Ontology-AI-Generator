@@ -29,9 +29,6 @@ jobs:
   build:
     name: build + test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIR }}
 
     steps:
       - uses: actions/checkout@v4
@@ -40,21 +37,33 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: api/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - run: npm ci
-      - run: npm run lint --if-present
-      - run: npm test --if-present
-      - run: npm run build
+      # Workspaces install at root, then run scripts inside the api workspace
+      - name: Install root + workspaces
+        run: npm ci
 
-      - name: Stage production bundle (POSIX paths)
+      - name: Lint API
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run lint --if-present
+
+      - name: Test API
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm test --if-present
+
+      - name: Build API (tsc)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run build
+
+      - name: Stage production bundle (POSIX paths, install with API package.json only)
         run: |
           set -e
-          STAGE=../release/api-stage
+          STAGE=release/api-stage
           rm -rf "$STAGE" && mkdir -p "$STAGE"
-          cp -r dist "$STAGE/"
-          cp package.json package-lock.json "$STAGE/"
-          (cd "$STAGE" && npm ci --omit=dev --no-audit --no-fund)
+          cp -r api/dist "$STAGE/"
+          cp api/package.json "$STAGE/"
+          # Fresh, non-workspace install so node_modules is local to the staged app
+          (cd "$STAGE" && npm install --omit=dev --no-audit --no-fund --package-lock-only=false)
           echo "--- staged tree top level ---"
           ls -la "$STAGE"
           du -sh "$STAGE"
@@ -62,7 +71,7 @@ jobs:
       - name: Zip release
         run: |
           set -e
-          cd ../release/api-stage
+          cd release/api-stage
           zip -rq ../api.zip . -x "*.map" -x "*.test.*" -x "*.spec.*"
           ls -lh ../api.zip
 

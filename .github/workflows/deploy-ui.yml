@@ -30,9 +30,6 @@ jobs:
   build:
     name: build + test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIR }}
 
     steps:
       - uses: actions/checkout@v4
@@ -41,14 +38,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: ui/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - run: npm ci
-      - run: npm run lint --if-present
-      - run: npm test -- --watch=false --browsers=ChromeHeadlessCI --if-present
+      - name: Install root + workspaces
+        run: npm ci
+
+      - name: Lint UI
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run lint --if-present
+
+      - name: Test UI
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm test -- --watch=false --browsers=ChromeHeadlessCI --if-present
         continue-on-error: true
 
       - name: Inject build-time config (Entra clientId + API URL)
+        working-directory: ${{ env.WORKING_DIR }}
         env:
           ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
           API_BASE_URL: https://${{ env.AZURE_API_WEBAPP_NAME }}.azurewebsites.net/api
@@ -60,25 +65,26 @@ jobs:
           echo "--- environment.prod.ts after injection ---"
           grep -E 'apiUrl|clientId' src/environments/environment.prod.ts
 
-      - run: npm run build -- --configuration production
+      - name: Build UI (production)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run build -- --configuration production
 
       - name: Stage SSR + browser bundle (POSIX paths)
         run: |
-          mkdir -p ../release/ui-stage
-          # Angular builds into dist/<app>/{browser,server}
-          APP_DIR=$(find dist -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          set -e
+          mkdir -p release/ui-stage
+          # Angular builds into ui/dist/<app>/{browser,server}
+          APP_DIR=$(find ui/dist -mindepth 1 -maxdepth 1 -type d | head -n 1)
           echo "App dist dir: $APP_DIR"
-          cp -r "$APP_DIR"/* ../release/ui-stage/
-          # If there's a top-level server.js produced by Angular SSR, copy it; otherwise create a
-          # minimal Express host that serves the browser folder.
-          if [ ! -f ../release/ui-stage/server.js ] && [ -f ../release/ui-stage/server/server.mjs ]; then
-            echo "Using SSR server.mjs as entrypoint"
-          fi
+          cp -r "$APP_DIR"/* release/ui-stage/
+          ls -la release/ui-stage
 
       - name: Create Express host if SSR not present
         run: |
-          if [ ! -f ../release/ui-stage/server.js ] && [ ! -f ../release/ui-stage/server/server.mjs ]; then
-            cat > ../release/ui-stage/server.js <<'EOF'
+          set -e
+          if [ ! -f release/ui-stage/server.js ] && [ ! -f release/ui-stage/server/server.mjs ]; then
+            echo "No Angular SSR detected \u2014 generating minimal Express host"
+            cat > release/ui-stage/server.js <<'EOF'
           const express = require('express');
           const path = require('path');
           const app = express();
@@ -88,7 +94,7 @@ jobs:
           const port = process.env.PORT || 8080;
           app.listen(port, () => console.log('UI listening on ' + port));
           EOF
-            cat > ../release/ui-stage/package.json <<'EOF'
+            cat > release/ui-stage/package.json <<'EOF'
           {
             "name": "ui-host",
             "private": true,
@@ -98,13 +104,16 @@ jobs:
             "dependencies": { "express": "^4.19.2" }
           }
           EOF
-            (cd ../release/ui-stage && npm install --omit=dev --no-audit --no-fund)
+            (cd release/ui-stage && npm install --omit=dev --no-audit --no-fund)
+          else
+            echo "Angular SSR detected \u2014 using produced server"
           fi
 
       - name: Zip release
         run: |
-          cd ../release/ui-stage
-          zip -r ../ui.zip . -x "*.map"
+          set -e
+          cd release/ui-stage
+          zip -rq ../ui.zip . -x "*.map"
           ls -lh ../ui.zip
 
       - uses: actions/upload-artifact@v4
