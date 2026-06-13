@@ -122,7 +122,7 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(STORAGE_KEY);
     }
-    if (current?.user.method === 'entra_id') {
+    if (current?.user.authMethod === 'entra_id') {
       this.msal.logoutPopup().subscribe({ error: () => undefined });
     }
   }

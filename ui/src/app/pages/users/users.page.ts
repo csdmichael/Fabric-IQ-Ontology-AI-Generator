@@ -15,11 +15,14 @@ import {
   IonSelect,
   IonSelectOption,
   IonSpinner,
+  IonText,
   IonToggle
 } from '@ionic/angular/standalone';
 
 import { AuthMethod, UserRole } from '../../models/auth.model';
+import { LoginAuditRecord } from '../../models/login-audit.model';
 import { UserRecord, UserUpsertInput } from '../../models/user.model';
+import { LoginAuditService } from '../../services/login-audit.service';
 import { UserService } from '../../services/user.service';
 
 @Component({
@@ -42,19 +45,24 @@ import { UserService } from '../../services/user.service';
     IonList,
     IonToggle,
     IonSpinner,
-    IonNote
+    IonNote,
+    IonText
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UsersPage implements OnInit {
   private readonly users = inject(UserService);
+  private readonly loginAudit = inject(LoginAuditService);
 
   readonly roles: UserRole[] = ['business_user', 'it_user', 'admin', 'app_owner'];
   readonly methods: AuthMethod[] = ['otp', 'entra_id'];
 
   readonly records = signal<UserRecord[]>([]);
+  readonly auditRecords = signal<LoginAuditRecord[]>([]);
   readonly busy = signal(false);
+  readonly auditBusy = signal(false);
   readonly error = signal<string | null>(null);
+  readonly auditError = signal<string | null>(null);
 
   readonly draft = signal<UserUpsertInput>({
     email: '',
@@ -69,6 +77,11 @@ export class UsersPage implements OnInit {
   }
 
   reload(): void {
+    this.reloadUsers();
+    this.reloadAudit();
+  }
+
+  reloadUsers(): void {
     this.busy.set(true);
     this.error.set(null);
     this.users.list().subscribe({
@@ -79,6 +92,21 @@ export class UsersPage implements OnInit {
       error: (err: { message?: string }) => {
         this.error.set(err?.message ?? 'Unable to load users.');
         this.busy.set(false);
+      }
+    });
+  }
+
+  reloadAudit(): void {
+    this.auditBusy.set(true);
+    this.auditError.set(null);
+    this.loginAudit.list().subscribe({
+      next: (records) => {
+        this.auditRecords.set(records);
+        this.auditBusy.set(false);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.auditError.set(err?.error?.message ?? 'Unable to load login audit history.');
+        this.auditBusy.set(false);
       }
     });
   }
@@ -127,5 +155,19 @@ export class UsersPage implements OnInit {
       error: (err: { error?: { message?: string } }) =>
         this.error.set(err?.error?.message ?? 'Failed to remove user.')
     });
+  }
+
+  auditSecondary(record: LoginAuditRecord): string {
+    const pieces = [
+      record.email,
+      record.role,
+      record.ipAddress,
+      record.userAgent
+    ].filter(Boolean);
+    return pieces.join(' · ');
+  }
+
+  formatTimestamp(value: string): string {
+    return new Date(value).toLocaleString();
   }
 }

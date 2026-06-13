@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 
 import { permissionsForRole } from '../config/roles';
 import { entraService } from '../services/entra.service';
+import { loginAuditService } from '../services/login-audit.service';
 import { otpService } from '../services/otp.service';
 import { tokenService } from '../services/token.service';
 import { userService } from '../services/user.service';
-import { EntraLoginBody, OtpRequestBody, OtpVerifyBody } from '../types/auth.types';
+import { AuthMethod, AuthenticatedUser, EntraLoginBody, OtpRequestBody, OtpVerifyBody } from '../types/auth.types';
 
 export class AuthController {
   /** Step 1: business user supplies their email; we look up which method to use. */
@@ -58,23 +59,27 @@ export class AuthController {
     const email = request.body.email?.trim().toLowerCase();
     const code = request.body.code?.trim();
     if (!email || !code) {
+      await this.recordFailure(request, 'otp', email, 'email_and_code_required');
       response.status(400).json({ message: 'email and code are required.' });
       return;
     }
 
     const ok = await otpService.verify(email, code);
     if (!ok) {
+      await this.recordFailure(request, 'otp', email, 'invalid_or_expired_otp');
       response.status(401).json({ message: 'Invalid or expired OTP.' });
       return;
     }
 
     const user = await userService.resolveLogin(email, 'otp');
     if (!user) {
+      await this.recordFailure(request, 'otp', email, 'otp_account_not_authorized');
       response.status(403).json({ message: 'Account is not allowed for OTP sign-in.' });
       return;
     }
 
     const session = tokenService.issue(user);
+    await this.recordSuccess(request, user);
     response.status(200).json({ ...session, permissions: permissionsForRole(user.role) });
   }
 
@@ -82,14 +87,18 @@ export class AuthController {
   async loginWithEntra(request: Request<unknown, unknown, EntraLoginBody>, response: Response): Promise<void> {
     const idToken = request.body.idToken?.trim();
     if (!idToken) {
+      await this.recordFailure(request, 'entra_id', undefined, 'id_token_required');
       response.status(400).json({ message: 'idToken is required.' });
       return;
     }
 
+    let attemptedEmail: string | undefined;
     try {
       const identity = await entraService.verifyIdToken(idToken);
+      attemptedEmail = identity.email;
       const user = await userService.resolveLogin(identity.email, 'entra_id');
       if (!user) {
+        await this.recordFailure(request, 'entra_id', identity.email, 'entra_account_not_authorized');
         response.status(403).json({ message: 'Account is not authorized for Entra ID sign-in.' });
         return;
       }
@@ -108,8 +117,15 @@ export class AuthController {
       }
 
       const session = tokenService.issue(user);
+      await this.recordSuccess(request, user);
       response.status(200).json({ ...session, permissions: permissionsForRole(user.role) });
     } catch (error) {
+      await this.recordFailure(
+        request,
+        'entra_id',
+        attemptedEmail,
+        error instanceof Error ? error.message : 'entra_sign_in_failed'
+      );
       response.status(401).json({ message: error instanceof Error ? error.message : 'Entra ID sign-in failed.' });
     }
   }
@@ -126,8 +142,7 @@ export class AuthController {
     });
   }
 
-  /** Ephemeral guest session — read-only access, no persisted user record. */
-  async loginAsGuest(_request: Request, response: Response): Promise<void> {
+  async loginAsGuest(request: Request, response: Response): Promise<void> {
     const now = new Date().toISOString();
     const guestUser = {
       id: `guest-${Date.now()}`,
@@ -140,6 +155,46 @@ export class AuthController {
       updatedAt: now
     };
     const session = tokenService.issue(guestUser);
+    await this.recordSuccess(request, guestUser);
     response.status(200).json({ ...session, permissions: permissionsForRole('guest') });
+  }
+
+  async audit(_request: Request, response: Response): Promise<void> {
+    const entries = await loginAuditService.list();
+    response.status(200).json(entries);
+  }
+
+  private async recordFailure(
+    request: Request,
+    method: AuthMethod,
+    email: string | undefined,
+    reason: string
+  ): Promise<void> {
+    await loginAuditService.record({
+      method,
+      outcome: 'failure',
+      email,
+      reason,
+      ...this.requestMetadata(request)
+    });
+  }
+
+  private async recordSuccess(request: Request, user: AuthenticatedUser): Promise<void> {
+    await loginAuditService.record({
+      method: user.authMethod,
+      outcome: 'success',
+      email: user.email,
+      userId: user.id,
+      displayName: user.displayName,
+      role: user.role,
+      ...this.requestMetadata(request)
+    });
+  }
+
+  private requestMetadata(request: Request): { ipAddress?: string; userAgent?: string } {
+    return {
+      ipAddress: request.ip || undefined,
+      userAgent: request.header('user-agent') ?? undefined
+    };
   }
 }

@@ -57,7 +57,7 @@ export const openApiSpec = {
         type: 'object',
         properties: {
           email: { type: 'string', format: 'email' },
-          method: { type: 'string', enum: ['otp', 'entra'] }
+          method: { type: 'string', enum: ['otp', 'entra_id'] }
         }
       },
       OtpRequest: {
@@ -67,10 +67,10 @@ export const openApiSpec = {
       },
       OtpVerifyRequest: {
         type: 'object',
-        required: ['email', 'otp'],
+        required: ['email', 'code'],
         properties: {
           email: { type: 'string', format: 'email' },
-          otp: { type: 'string', minLength: 4, maxLength: 8 }
+          code: { type: 'string', minLength: 4, maxLength: 8 }
         }
       },
       EntraLoginRequest: {
@@ -92,10 +92,11 @@ export const openApiSpec = {
           id: { type: 'string' },
           email: { type: 'string', format: 'email' },
           displayName: { type: 'string' },
-          role: { type: 'string', enum: ['business-user', 'it-user', 'admin', 'app-owner'] },
-          authMethod: { type: 'string', enum: ['otp', 'entra'] },
+          role: { type: 'string', enum: ['guest', 'business_user', 'it_user', 'admin', 'app_owner'] },
+          authMethod: { type: 'string', enum: ['otp', 'entra_id', 'guest'] },
           createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
+          updatedAt: { type: 'string', format: 'date-time' },
+          lastLoginAt: { type: 'string', format: 'date-time' }
         }
       },
       UserCreateRequest: {
@@ -104,16 +105,32 @@ export const openApiSpec = {
         properties: {
           email: { type: 'string', format: 'email' },
           displayName: { type: 'string' },
-          role: { type: 'string', enum: ['business-user', 'it-user', 'admin', 'app-owner'] },
-          authMethod: { type: 'string', enum: ['otp', 'entra'] }
+          role: { type: 'string', enum: ['guest', 'business_user', 'it_user', 'admin', 'app_owner'] },
+          authMethod: { type: 'string', enum: ['otp', 'entra_id', 'guest'] }
         }
       },
       UserUpdateRequest: {
         type: 'object',
         properties: {
           displayName: { type: 'string' },
-          role: { type: 'string', enum: ['business-user', 'it-user', 'admin', 'app-owner'] },
-          authMethod: { type: 'string', enum: ['otp', 'entra'] }
+          role: { type: 'string', enum: ['guest', 'business_user', 'it_user', 'admin', 'app_owner'] },
+          authMethod: { type: 'string', enum: ['otp', 'entra_id', 'guest'] }
+        }
+      },
+      LoginAuditRecord: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          at: { type: 'string', format: 'date-time' },
+          method: { type: 'string', enum: ['otp', 'entra_id', 'guest'] },
+          outcome: { type: 'string', enum: ['success', 'failure'] },
+          email: { type: 'string', format: 'email' },
+          userId: { type: 'string' },
+          displayName: { type: 'string' },
+          role: { type: 'string', enum: ['guest', 'business_user', 'it_user', 'admin', 'app_owner'] },
+          reason: { type: 'string' },
+          ipAddress: { type: 'string' },
+          userAgent: { type: 'string' }
         }
       },
       Ontology: {
@@ -315,6 +332,27 @@ export const openApiSpec = {
             content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } }
           },
           401: { description: 'Unauthenticated.' }
+        }
+      }
+    },
+    '/api/auth/audit': {
+      get: {
+        tags: ['Auth'],
+        summary: 'List recent successful and failed login attempts',
+        responses: {
+          200: {
+            description: 'Recent login audit records.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/LoginAuditRecord' }
+                }
+              }
+            }
+          },
+          401: { description: 'Unauthenticated.' },
+          403: { description: 'Forbidden.' }
         }
       }
     },
