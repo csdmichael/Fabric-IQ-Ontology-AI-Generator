@@ -5,10 +5,11 @@ import { Permission, UserRole } from '../models/auth.model';
 import { AuthService } from '../services/auth.service';
 
 const ROLE_RANK: Record<UserRole, number> = {
-  business_user: 0,
-  it_user: 1,
-  admin: 2,
-  app_owner: 3
+  guest: 0,
+  business_user: 1,
+  it_user: 2,
+  admin: 3,
+  app_owner: 4
 };
 
 export const authGuard: CanActivateFn = (_route, state) => {

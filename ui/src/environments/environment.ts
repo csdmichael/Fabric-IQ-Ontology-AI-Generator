@@ -8,6 +8,13 @@ export const environment = {
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
     scopes: ['openid', 'profile', 'email'],
-    allowedDomain: '@MngEnvMCAP829495.onmicrosoft.com'
+    allowedDomain: '@MngEnvMCAP829495.onmicrosoft.com',
+    internalDomains: ['MngEnvMCAP829495.onmicrosoft.com', 'microsoft.com']
+  },
+  branding: {
+    systemName: 'Fabric IQ Ontology AI Generator',
+    shortName: 'Fabric IQ',
+    tagline: 'Design, bind, and ship business ontologies for Microsoft Fabric.',
+    supportEmail: 'myaacoub@microsoft.com'
   }
 };

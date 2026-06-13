@@ -1,89 +1,215 @@
-<ion-content class="login-page ion-padding">
+<ion-content class="login-page" [fullscreen]="true">
   <div class="login-shell">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Sign in to Fabric IQ</ion-card-title>
-        <ion-card-subtitle>
-          Choose Microsoft Entra ID (corporate accounts) or one-time passcode (guest / external).
-        </ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        @if (stage() === 'email') {
-          <ion-item>
-            <ion-label position="stacked">Email address</ion-label>
+    <!-- Left: brand / value prop -->
+    <aside class="login-hero">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="sq red"></span>
+        <span class="sq green"></span>
+        <span class="sq blue"></span>
+        <span class="sq yellow"></span>
+      </div>
+
+      <p class="eyebrow">{{ shortName }}</p>
+      <h1>{{ systemName }}</h1>
+      <p class="tagline">{{ tagline }}</p>
+
+      <ul class="highlight-list">
+        @for (item of highlights; track item.title) {
+          <li>
+            <span class="highlight-icon">
+              <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            </span>
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.description }}</p>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <footer class="hero-footer">
+        <span>Powered by Microsoft Fabric &amp; Azure AI Foundry</span>
+      </footer>
+    </aside>
+
+    <!-- Right: sign-in card -->
+    <section class="login-card" role="region" aria-label="Sign in">
+      <header class="login-card__header">
+        <h2>Sign in</h2>
+        <p>
+          Use your Microsoft Entra ID for single sign-on, request a one-time passcode by email,
+          or continue as a guest for read-only access.
+        </p>
+      </header>
+
+      @if (stage() === 'email') {
+        <form (ngSubmit)="resolveMethod()" #emailForm="ngForm" class="login-form">
+          <label class="field-label" for="loginEmail">Work email</label>
+          <div class="field">
+            <ion-icon name="mail-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <ion-input
+              id="loginEmail"
               type="email"
               autocomplete="email"
-              placeholder="you@example.com"
+              inputmode="email"
+              placeholder="you@company.com"
               [value]="email()"
-              (ionInput)="email.set($any($event).detail.value ?? '')"
+              (ionInput)="email.set($any($event.target).value ?? '')"
+              required
             ></ion-input>
-          </ion-item>
-          <ion-button expand="block" (click)="resolveMethod()" [disabled]="busy()">
+          </div>
+
+          @if (domainHelpers().length > 0) {
+            <div class="domain-helpers" role="group" aria-label="Quick-pick domain">
+              <span class="helpers-label">Quick fill:</span>
+              @for (domain of domainHelpers(); track domain) {
+                <button
+                  type="button"
+                  class="domain-chip"
+                  [disabled]="busy()"
+                  (click)="applyDomain(domain)"
+                >
+                  &#64;{{ domain }}
+                </button>
+              }
+            </div>
+          }
+
+          <ion-button
+            type="submit"
+            expand="block"
+            class="primary-btn"
+            [disabled]="busy()"
+          >
             @if (busy()) {
-              <ion-spinner name="dots"></ion-spinner>
+              <ion-spinner name="dots" slot="start"></ion-spinner>
+              Continuing&hellip;
             } @else {
               Continue
             }
           </ion-button>
-        }
 
-        @if (stage() !== 'email') {
-          <ion-segment
-            [value]="method()"
-            (ionChange)="switchMethod($any($event).detail.value)"
+          <div class="divider"><span>or</span></div>
+
+          <ion-button
+            type="button"
+            expand="block"
+            fill="outline"
+            class="guest-btn"
+            [disabled]="guestBusy()"
+            (click)="continueAsGuest()"
           >
-            <ion-segment-button value="entra_id">
-              <ion-label>Entra ID</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="otp">
-              <ion-label>One-time code</ion-label>
-            </ion-segment-button>
-          </ion-segment>
-        }
+            @if (guestBusy()) {
+              <ion-spinner name="dots" slot="start"></ion-spinner>
+              Loading guest session&hellip;
+            } @else {
+              <ion-icon slot="start" name="person-outline" aria-hidden="true"></ion-icon>
+              Continue as guest (read-only)
+            }
+          </ion-button>
+          <ion-note class="muted-hint">
+            Guests can explore generated ontologies and reference data sources. They cannot
+            create, edit, bind, or deploy.
+          </ion-note>
 
-        @if (stage() === 'otp') {
-          <ion-item>
-            <ion-label position="stacked">6-digit code sent to {{ email() }}</ion-label>
+          @if (supportEmail) {
+            <div class="request-access-row">
+              <span>Don't have an account?</span>
+              <a
+                class="request-link"
+                [href]="requestAccessMailto()"
+                target="_blank"
+                rel="noopener"
+              >
+                <ion-icon name="paper-plane-outline" aria-hidden="true"></ion-icon>
+                Request access
+              </a>
+            </div>
+          }
+        </form>
+      }
+
+      @if (stage() === 'otp') {
+        <form (ngSubmit)="verifyOtp()" #otpForm="ngForm" class="login-form">
+          @if (infoMessage(); as info) {
+            <ion-note class="info-banner">{{ info }}</ion-note>
+          }
+
+          <label class="field-label" for="loginOtp">6-digit code sent to {{ email() }}</label>
+          <div class="field">
+            <ion-icon name="key-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <ion-input
+              id="loginOtp"
               inputmode="numeric"
               autocomplete="one-time-code"
+              maxlength="8"
+              placeholder="123456"
               [value]="code()"
-              (ionInput)="code.set($any($event).detail.value ?? '')"
+              (ionInput)="code.set($any($event.target).value ?? '')"
             ></ion-input>
-          </ion-item>
+          </div>
+
           @if (previewCode(); as preview) {
-            <ion-note color="medium">Dev preview code: {{ preview }}</ion-note>
+            <ion-note class="dev-hint">Dev preview code: {{ preview }}</ion-note>
           }
-          <ion-button expand="block" (click)="verifyOtp()" [disabled]="busy()">
+
+          <ion-button
+            type="submit"
+            expand="block"
+            class="primary-btn"
+            [disabled]="busy()"
+          >
             @if (busy()) {
-              <ion-spinner name="dots"></ion-spinner>
+              <ion-spinner name="dots" slot="start"></ion-spinner>
+              Verifying&hellip;
             } @else {
               Verify and sign in
             }
           </ion-button>
-          <ion-button expand="block" fill="clear" (click)="reset()">Use a different email</ion-button>
-        }
 
-        @if (stage() === 'entra') {
-          <p>{{ infoMessage() }}</p>
-          <ion-button expand="block" (click)="loginWithEntra()" [disabled]="busy()">
+          <div class="card-actions">
+            <button type="button" class="link-btn" (click)="resolveMethod()" [disabled]="busy()">
+              <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+              Resend code
+            </button>
+            <button type="button" class="link-btn" (click)="reset()" [disabled]="busy()">
+              Use a different email
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (stage() === 'entra') {
+        <div class="login-form">
+          @if (infoMessage(); as info) {
+            <ion-note class="info-banner">{{ info }}</ion-note>
+          }
+
+          <ion-button
+            type="button"
+            expand="block"
+            class="primary-btn entra-btn"
+            [disabled]="busy()"
+            (click)="loginWithEntra()"
+          >
             @if (busy()) {
-              <ion-spinner name="dots"></ion-spinner>
+              <ion-spinner name="dots" slot="start"></ion-spinner>
+              Opening Microsoft sign-in&hellip;
             } @else {
+              <ion-icon slot="start" name="logo-microsoft" aria-hidden="true"></ion-icon>
               Sign in with Microsoft
             }
           </ion-button>
-          <ion-button expand="block" fill="clear" (click)="reset()">Use a different email</ion-button>
-        }
 
-        @if (errorMessage(); as err) {
-          <ion-note color="danger">{{ err }}</ion-note>
-        }
-        @if (infoMessage() && stage() !== 'entra'; as info) {
-          <ion-note color="medium">{{ info }}</ion-note>
-        }
-      </ion-card-content>
-    </ion-card>
+          <button type="button" class="link-btn" (click)="reset()" [disabled]="busy()">
+            Use a different email
+          </button>
+        </div>
+      }
+
+      @if (errorMessage(); as err) {
+        <ion-note class="error-banner" role="alert">{{ err }}</ion-note>
+      }
+    </section>
   </div>
 </ion-content>

@@ -10,6 +10,7 @@ authRouter.post('/method', (request, response) => controller.resolveMethod(reque
 authRouter.post('/otp/request', (request, response) => controller.requestOtp(request, response));
 authRouter.post('/otp/verify', (request, response) => controller.verifyOtp(request, response));
 authRouter.post('/entra/login', (request, response) => controller.loginWithEntra(request, response));
+authRouter.post('/guest', (request, response) => controller.loginAsGuest(request, response));
 authRouter.get('/me', requireAuth, (request, response) => controller.me(request, response));
 
 export default authRouter;

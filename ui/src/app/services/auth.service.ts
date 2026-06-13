@@ -83,6 +83,31 @@ export class AuthService {
     return session;
   }
 
+  async loginAsGuest(): Promise<AuthSession> {
+    const session = await firstValueFrom(
+      this.http.post<AuthSession>(`${this.baseUrl}/guest`, {})
+    );
+    this.persist(session);
+    return session;
+  }
+
+  /** Internal Entra-ID-eligible domains, surfaced to the login page as quick-pick chips. */
+  internalDomains(): string[] {
+    const list = (environment.auth as { internalDomains?: string[] }).internalDomains;
+    if (list && list.length > 0) {
+      return list.map((d) => d.replace(/^@/, '').toLowerCase());
+    }
+    const fallback = environment.auth.allowedDomain?.replace(/^@/, '').toLowerCase();
+    return fallback ? [fallback] : [];
+  }
+
+  isInternalEmail(email: string): boolean {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized.includes('@')) return false;
+    const domain = normalized.split('@')[1] ?? '';
+    return this.internalDomains().some((d) => domain === d);
+  }
+
   refreshMe(): Promise<{ user: AuthenticatedUser; permissions: Permission[] }> {
     return firstValueFrom(
       this.http.get<{ user: AuthenticatedUser; permissions: Permission[] }>(

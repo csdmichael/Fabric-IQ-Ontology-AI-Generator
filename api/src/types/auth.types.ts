@@ -1,6 +1,6 @@
-export type UserRole = 'business_user' | 'it_user' | 'admin' | 'app_owner';
+export type UserRole = 'guest' | 'business_user' | 'it_user' | 'admin' | 'app_owner';
 
-export type AuthMethod = 'otp' | 'entra_id';
+export type AuthMethod = 'otp' | 'entra_id' | 'guest';
 
 export interface AuthenticatedUser {
   id: string;

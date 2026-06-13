@@ -4,7 +4,7 @@ import { UserRole } from '../types/auth.types';
  * Role hierarchy: a higher role inherits all the permissions of the roles below it.
  * The order is meaningful — index 0 = lowest privilege, last = highest privilege.
  */
-export const ROLE_HIERARCHY: UserRole[] = ['business_user', 'it_user', 'admin', 'app_owner'];
+export const ROLE_HIERARCHY: UserRole[] = ['guest', 'business_user', 'it_user', 'admin', 'app_owner'];
 
 export type Permission =
   | 'ontology:read'
@@ -22,6 +22,10 @@ export type Permission =
   | 'users:manage';
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  guest: [
+    'ontology:read',
+    'datasource:read'
+  ],
   business_user: [
     'ontology:read',
     'ontology:create',

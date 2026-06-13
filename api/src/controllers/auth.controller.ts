@@ -125,4 +125,21 @@ export class AuthController {
       permissions: permissionsForRole(request.user.role)
     });
   }
+
+  /** Ephemeral guest session — read-only access, no persisted user record. */
+  async loginAsGuest(_request: Request, response: Response): Promise<void> {
+    const now = new Date().toISOString();
+    const guestUser = {
+      id: `guest-${Date.now()}`,
+      email: 'guest@fabric-iq.local',
+      displayName: 'Guest (read-only)',
+      role: 'guest' as const,
+      authMethod: 'guest' as const,
+      enabled: true,
+      createdAt: now,
+      updatedAt: now
+    };
+    const session = tokenService.issue(guestUser);
+    response.status(200).json({ ...session, permissions: permissionsForRole('guest') });
+  }
 }
