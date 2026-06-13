@@ -10,6 +10,7 @@ export interface AppConfig {
   cosmosDatabase: string;
   cosmosContainer: string;
   cosmosUsersContainer: string;
+  cosmosLoginAuditContainer: string;
   storageConnectionString: string;
   storageAccountName: string;
   storageContainer: string;
@@ -65,6 +66,7 @@ export const environment: AppConfig = {
   cosmosDatabase: process.env.COSMOS_DATABASE ?? 'fabric-iq',
   cosmosContainer: process.env.COSMOS_CONTAINER ?? 'ontologies',
   cosmosUsersContainer: process.env.COSMOS_USERS_CONTAINER ?? 'users',
+  cosmosLoginAuditContainer: process.env.COSMOS_LOGIN_AUDIT_CONTAINER ?? 'login-audit',
   storageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING ?? '',
   storageAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME ?? 'aistoragemyaacoub',
   storageContainer: process.env.AZURE_STORAGE_CONTAINER ?? 'fabric-iq-prompts',

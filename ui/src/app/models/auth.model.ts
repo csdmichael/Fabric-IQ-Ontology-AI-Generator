@@ -21,7 +21,7 @@ export interface AuthenticatedUser {
   email: string;
   displayName: string;
   role: UserRole;
-  method: AuthMethod;
+  authMethod: AuthMethod;
 }
 
 export interface SessionToken {

@@ -93,4 +93,37 @@
       </ion-list>
     </ion-card-content>
   </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Login audit</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (auditBusy()) {
+        <ion-spinner name="dots"></ion-spinner>
+      }
+      @if (auditError(); as err) {
+        <ion-note color="danger">{{ err }}</ion-note>
+      }
+      <ion-list>
+        @for (record of auditRecords(); track record.id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ record.outcome === 'success' ? 'Successful login' : 'Failed login' }}</h2>
+              <p>{{ formatTimestamp(record.at) }} &middot; {{ formatMethod(record.method) }}</p>
+              @if (auditSecondary(record)) {
+                <p>{{ auditSecondary(record) }}</p>
+              }
+              @if (record.reason) {
+                <p>{{ record.reason }}</p>
+              }
+            </ion-label>
+            <ion-text slot="end" [color]="record.outcome === 'success' ? 'success' : 'danger'">
+              {{ record.outcome }}
+            </ion-text>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 </ion-content>
