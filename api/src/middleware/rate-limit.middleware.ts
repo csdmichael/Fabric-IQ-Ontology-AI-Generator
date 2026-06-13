@@ -15,7 +15,15 @@ export const createRateLimit = ({ windowMs, maxRequests }: RateLimitOptions) => 
 
   return (request: Request, response: Response, next: NextFunction): void => {
     const now = Date.now();
-    const key = `${request.ip}:${request.method}:${request.path}`;
+    for (const [key, entry] of entries) {
+      if (entry.expiresAt <= now) {
+        entries.delete(key);
+      }
+    }
+
+    const forwardedFor = request.header('x-forwarded-for')?.split(',')[0]?.trim();
+    const clientAddress = forwardedFor || request.ip || 'unknown';
+    const key = `${clientAddress}:${request.method}:${request.path}`;
     const current = entries.get(key);
 
     if (!current || current.expiresAt <= now) {

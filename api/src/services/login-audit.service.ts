@@ -16,23 +16,24 @@ export class LoginAuditService {
   private containerPromise: Promise<Container | null> | undefined;
 
   async list(limit = FALLBACK_LIMIT): Promise<LoginAuditRecord[]> {
+    const normalizedLimit = Math.max(1, Math.min(limit, FALLBACK_LIMIT));
     const fallbackEntries = Array.from(this.fallback.values());
     const container = await this.getContainer();
     if (!container) {
-      return this.sortAndLimit(fallbackEntries, limit);
+      return this.sortAndLimit(fallbackEntries, normalizedLimit);
     }
 
     try {
       const { resources } = await container.items
         .query<LoginAuditRecord>({
-          query: 'SELECT * FROM c WHERE c.type = @type ORDER BY c.at DESC',
+          query: `SELECT TOP ${normalizedLimit} * FROM c WHERE c.type = @type ORDER BY c.at DESC`,
           parameters: [{ name: '@type', value: 'login_audit' }]
         })
         .fetchAll();
-      return this.sortAndLimit([...resources, ...fallbackEntries], limit);
+      return this.sortAndLimit([...resources, ...fallbackEntries], normalizedLimit);
     } catch (error) {
       console.warn('[LoginAuditService] Failed to read Cosmos audit records, using fallback store.', error);
-      return this.sortAndLimit(fallbackEntries, limit);
+      return this.sortAndLimit(fallbackEntries, normalizedLimit);
     }
   }
 
@@ -53,6 +54,13 @@ export class LoginAuditService {
     };
 
     this.fallback.set(record.id, record);
+    while (this.fallback.size > FALLBACK_LIMIT) {
+      const oldestId = this.fallback.keys().next().value;
+      if (!oldestId) {
+        break;
+      }
+      this.fallback.delete(oldestId);
+    }
 
     const container = await this.getContainer();
     if (!container) {

@@ -170,4 +170,15 @@ export class UsersPage implements OnInit {
   formatTimestamp(value: string): string {
     return new Date(value).toLocaleString();
   }
+
+  formatMethod(method: LoginAuditRecord['method']): string {
+    switch (method) {
+      case 'entra_id':
+        return 'Microsoft Entra ID';
+      case 'guest':
+        return 'Guest access';
+      default:
+        return 'Email code';
+    }
+  }
 }
