@@ -16,6 +16,8 @@ const STORAGE_KEY = 'fabric-iq.session';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private static readonly ENTRA_POPUP_TIMEOUT_MS = 45_000;
+
   private readonly http = inject(HttpClient);
   private readonly msal = inject(MsalService);
   private readonly baseUrl = `${environment.apiUrl}/api/auth`;
@@ -68,7 +70,11 @@ export class AuthService {
       prompt: 'select_account'
     };
 
-    const result: AuthenticationResult = await firstValueFrom(this.msal.loginPopup(popupRequest));
+    const result: AuthenticationResult = await this.withTimeout(
+      firstValueFrom(this.msal.loginPopup(popupRequest)),
+      AuthService.ENTRA_POPUP_TIMEOUT_MS,
+      'Microsoft sign-in popup timed out. Allow popups for this site and try again.'
+    );
     if (!result.idToken) {
       throw new Error('Microsoft Entra ID returned no id_token.');
     }
@@ -153,5 +159,21 @@ export class AuthService {
       window.localStorage.removeItem(STORAGE_KEY);
       return null;
     }
+  }
+
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+      promise.then(
+        (value) => {
+          clearTimeout(timeoutId);
+          resolve(value);
+        },
+        (error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        }
+      );
+    });
   }
 }

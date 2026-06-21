@@ -26,6 +26,11 @@ function msalInstanceFactory(): IPublicClientApplication {
     cache: {
       cacheLocation: 'localStorage',
       storeAuthStateInCookie: false
+    },
+    system: {
+      allowNativeBroker: false,
+      asyncPopups: true,
+      windowHashTimeout: 60000
     }
   });
 }
