@@ -81,7 +81,9 @@ export const environment: AppConfig = {
   azureOpenAiEndpoint: process.env.AZURE_OPENAI_ENDPOINT ?? '',
   azureOpenAiKey: process.env.AZURE_OPENAI_KEY ?? '',
   azureOpenAiDeployment: process.env.AZURE_OPENAI_DEPLOYMENT ?? 'fabric-iq-generator',
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:4200',
+  corsOrigin:
+    process.env.CORS_ORIGIN ??
+    'http://localhost:4200,https://ui-fabriciq-b3.azurewebsites.net',
 
   jwtSecret: process.env.JWT_SECRET ?? 'change-me-in-production',
   jwtIssuer: process.env.JWT_ISSUER ?? 'fabric-iq-api',
