@@ -1,8 +1,9 @@
 <ion-content fullscreen="true">
   <section class="page-section">
     <h1>Ontologies</h1>
-    <p class="muted">Review generated drafts, refine entity definitions, and manage ontology versions.</p>
-    <ion-button routerLink="/ontologies/new">Create ontology</ion-button>
+    <p class="muted">Review business drafts, complete IT bindings, and manage deployment-ready ontology packages.</p>
+    <ion-button routerLink="/generate">Create from prompt</ion-button>
+    <ion-button fill="outline" routerLink="/ontologies/new">Create manually</ion-button>
   </section>
 
   @if (ontologies.length) {

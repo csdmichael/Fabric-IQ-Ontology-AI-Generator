@@ -1,40 +1,41 @@
 <ion-content fullscreen="true">
   <section class="page-section">
-    <h1>Generate ontology draft</h1>
-    <p class="muted">Describe the business case, target domain, and Fabric data assets to seed an ontology draft.</p>
+    <h1>Business ontology prompt studio</h1>
+    <p class="muted">Start with plain English only. Fabric connection is not required for business draft generation.</p>
   </section>
 
-  <section class="page-section card-grid">
+  <section class="page-section editor-grid">
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Business case</ion-card-title>
+        <ion-card-title>Prompt the business Foundry agent</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <ion-textarea
           auto-grow="true"
           fill="outline"
-          label="Business case prompt"
+          label="Business prompt"
           labelPlacement="stacked"
           [(ngModel)]="businessCase"
         ></ion-textarea>
         <ion-button expand="block" [disabled]="isGenerating" (click)="runGeneration()">
-          {{ isGenerating ? 'Generating…' : 'Generate draft ontology' }}
+          {{ isGenerating ? 'Generating…' : 'Generate business ontology draft' }}
         </ion-button>
       </ion-card-content>
     </ion-card>
 
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Generation output</ion-card-title>
+        <ion-card-title>Generated draft</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         @if (generatedOntology) {
           <h2>{{ generatedOntology.name }}</h2>
           <p>{{ generatedOntology.description }}</p>
-          <ion-text class="muted">{{ generatedOntology.entities.length }} suggested entities · {{ promptSummary }}</ion-text>
-          <ion-button expand="block" fill="outline" (click)="openEditor()">Open in editor</ion-button>
+          <ion-text class="muted">{{ generatedOntology.entities.length }} entities · {{ (generatedOntology.relationships ?? []).length }} relationships</ion-text>
+          <p class="muted">{{ promptSummary }}</p>
+          <ion-button expand="block" fill="outline" (click)="openEditor()">Open in ontology studio</ion-button>
         } @else {
-          <ion-text class="muted">Run generation to preview a draft ontology from your business narrative.</ion-text>
+          <ion-text class="muted">Run generation to create a business draft with entities and relationships.</ion-text>
         }
       </ion-card-content>
     </ion-card>
@@ -43,8 +44,8 @@
   <section class="page-section">
     <app-agent-chat
       agentKey="ontology-generator"
-      title="Ontology Generator agent"
-      subtitle="Iterate on the draft with the business-language assistant before opening it in the editor."
+      title="Business Foundry agent"
+      subtitle="Refine domain language, entities, and relationships before handing the draft to IT."
       [context]="agentContext()"
     ></app-agent-chat>
   </section>

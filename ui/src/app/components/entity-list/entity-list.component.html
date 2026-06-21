@@ -1,19 +1,65 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-title>Entities</ion-card-title>
+    <ion-card-title>Business entities and properties</ion-card-title>
   </ion-card-header>
   <ion-card-content>
-    <ion-list>
-      @for (entity of entities; track entity.id) {
-        <ion-item>
-          <ion-label position="stacked">Entity name</ion-label>
-          <ion-input [(ngModel)]="entity.name" (ionInput)="updateEntity()"></ion-input>
-          <ion-label position="stacked">Description</ion-label>
-          <ion-textarea [(ngModel)]="entity.description" (ionInput)="updateEntity()"></ion-textarea>
-          <ion-button color="danger" fill="clear" (click)="removeEntity(entity.id)">Remove</ion-button>
-        </ion-item>
-      }
-    </ion-list>
-    <ion-button expand="block" (click)="addEntity()">Add entity</ion-button>
+    <div class="entity-layout">
+      <div class="entity-sidebar">
+        <ion-list lines="none">
+          @for (entity of entities; track entity.id) {
+            <ion-item button="true" detail="false" (click)="selectEntity(entity.id)" [class.entity-selected]="selectedEntity?.id === entity.id">
+              <ion-label>
+                <h3>{{ entity.name }}</h3>
+                <p>{{ entity.properties.length }} properties</p>
+              </ion-label>
+              <ion-chip color="light">{{ entity.properties.length }}</ion-chip>
+            </ion-item>
+          }
+        </ion-list>
+        <ion-button expand="block" fill="outline" (click)="addEntity()">Add business entity</ion-button>
+      </div>
+
+      <div class="entity-editor">
+        @if (selectedEntity; as entity) {
+          <ion-item>
+            <ion-label position="stacked">Entity name</ion-label>
+            <ion-input [(ngModel)]="entity.name" (ionInput)="updateEntity()"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Description</ion-label>
+            <ion-textarea autoGrow="true" [(ngModel)]="entity.description" (ionInput)="updateEntity()"></ion-textarea>
+          </ion-item>
+          <div class="row-actions">
+            <ion-button color="danger" fill="clear" (click)="removeEntity(entity.id)">Delete entity</ion-button>
+          </div>
+
+          <h3>Entity properties</h3>
+          @for (property of entity.properties; track property.id) {
+            <div class="property-row">
+              <ion-item>
+                <ion-label position="stacked">Property name</ion-label>
+                <ion-input [(ngModel)]="property.name" (ionInput)="updateProperty()"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Type</ion-label>
+                <ion-select interface="popover" [(ngModel)]="property.type" (ionChange)="updateProperty()">
+                  @for (type of propertyTypes; track type) {
+                    <ion-select-option [value]="type">{{ type }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Description</ion-label>
+                <ion-input [(ngModel)]="property.description" (ionInput)="updateProperty()"></ion-input>
+              </ion-item>
+              <ion-button color="danger" fill="clear" (click)="removeProperty(property.id)">Remove</ion-button>
+            </div>
+          }
+          <ion-button expand="block" fill="outline" (click)="addProperty()">Add property</ion-button>
+        } @else {
+          <ion-text class="muted">No entities yet. Add one to start shaping the ontology model.</ion-text>
+        }
+      </div>
+    </div>
   </ion-card-content>
 </ion-card>

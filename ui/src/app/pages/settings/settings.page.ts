@@ -25,7 +25,7 @@ import { DatasourceService, FabricConnectionSettings } from '../../services/data
 export class SettingsPage implements OnInit {
   private readonly datasourceService = inject(DatasourceService);
 
-  protected statusMessage = 'Connect Fabric, storage, and AI services.';
+  protected statusMessage = 'IT configuration for Fabric Lakehouse, storage, and agent runtime.';
   protected settings: FabricConnectionSettings = {
     workspaceId: '',
     capacityId: '',

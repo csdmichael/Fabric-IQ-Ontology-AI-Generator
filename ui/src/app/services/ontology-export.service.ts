@@ -13,7 +13,7 @@ import {
 } from 'docx';
 import { saveAs } from 'file-saver';
 
-import { Ontology, OntologyEntity, OntologyRelationship } from '../models/ontology.model';
+import { Ontology, OntologyBinding, OntologyEntity, OntologyRelationship } from '../models/ontology.model';
 
 @Injectable({ providedIn: 'root' })
 export class OntologyExportService {
@@ -46,6 +46,15 @@ export class OntologyExportService {
       children.push(new Paragraph({ text: 'No relationships have been defined for this ontology.' }));
     } else {
       children.push(this.relationshipsTable(relationships, ontology.entities ?? []));
+    }
+
+    const bindings = ontology.bindings ?? [];
+    children.push(new Paragraph({ text: '' }));
+    children.push(new Paragraph({ text: 'Data Bindings', heading: HeadingLevel.HEADING_1 }));
+    if (bindings.length === 0) {
+      children.push(new Paragraph({ text: 'No data bindings have been defined yet.' }));
+    } else {
+      children.push(this.bindingsTable(bindings, ontology.entities ?? []));
     }
 
     const doc = new Document({
@@ -156,6 +165,40 @@ export class OntologyExportService {
           ]
         })
     );
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [headerRow, ...rows]
+    });
+  }
+
+  private bindingsTable(bindings: OntologyBinding[], entities: OntologyEntity[]): Table {
+    const lookup = new Map(entities.map((entity) => [entity.id, entity]));
+    const headerRow = new TableRow({
+      tableHeader: true,
+      children: ['Entity', 'Property', 'Lakehouse table', 'View', 'Source field', 'Notes'].map(
+        (label) =>
+          new TableCell({
+            shading: { fill: 'EEEEEE' },
+            children: [new Paragraph({ children: [new TextRun({ text: label, bold: true })] })]
+          })
+      )
+    });
+
+    const rows = bindings.map((binding) => {
+      const entity = lookup.get(binding.entityId);
+      const property = entity?.properties.find((item) => item.id === binding.propertyId);
+      return new TableRow({
+        children: [
+          this.cell(entity?.name ?? binding.entityId),
+          this.cell(property?.name ?? (binding.propertyId || 'Entity-level mapping')),
+          this.cell(binding.lakehouseTable),
+          this.cell(binding.lakehouseView ?? ''),
+          this.cell(binding.sourceField),
+          this.cell(binding.notes ?? '')
+        ]
+      });
+    });
+
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [headerRow, ...rows]

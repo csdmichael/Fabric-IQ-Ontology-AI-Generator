@@ -1,12 +1,12 @@
 <ion-content fullscreen="true">
   <section class="page-section">
     <ion-chip color="primary">Fabric IQ</ion-chip>
-    <h1>Turn plain-English business cases into draft Fabric ontologies.</h1>
+    <h1>Turn plain English into ontology drafts, then let IT bind and publish to Fabric.</h1>
     <p class="muted">
-      Business teams can describe concepts, review suggested entities, and map them to Microsoft Fabric OneLake sources.
+      Business users shape entities and relationships first. IT users then add Lakehouse views, bindings, and deployment artifacts.
     </p>
-    <ion-button routerLink="/generate">Start generation</ion-button>
-    <ion-button fill="outline" routerLink="/settings">Configure Fabric</ion-button>
+    <ion-button routerLink="/generate">Start with business prompt</ion-button>
+    <ion-button fill="outline" routerLink="/ontologies">Open ontology studio</ion-button>
   </section>
 
   <section class="page-section card-grid">
@@ -30,9 +30,11 @@
       </ion-card-header>
       <ion-card-content>
         <ol>
-          <li>Connect Fabric workspace, storage, and AI services.</li>
-          <li>Describe the business case in plain English.</li>
-          <li>Review generated entities and bind them to OneLake tables or views.</li>
+          <li>Business user prompts the ontology generator in plain English.</li>
+          <li>Business user reviews graph, entities, relationships, and properties, then saves draft.</li>
+          <li>Business user submits draft to IT for Lakehouse bindings.</li>
+          <li>IT configures Fabric connection, binds fields/views, and submits ontology package.</li>
+          <li>Admin deploys packaged ttl/json artifacts to Fabric.</li>
         </ol>
       </ion-card-content>
     </ion-card>

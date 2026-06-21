@@ -44,6 +44,22 @@ export interface OntologyRelationship {
   description?: string;
 }
 
+export interface OntologyBinding {
+  id: string;
+  entityId: string;
+  propertyId?: string;
+  lakehouseTable: string;
+  lakehouseView?: string;
+  sourceField: string;
+  notes?: string;
+}
+
+export interface OntologyArtifactFile {
+  type: 'ttl' | 'entities-json' | 'relationships-json' | 'bindings-json';
+  blobName: string;
+  uri: string;
+}
+
 export interface OntologyHistoryEntry {
   actor: string;
   action: string;
@@ -63,8 +79,10 @@ export interface Ontology {
   createdBy?: string;
   lastModifiedBy?: string;
   blobUri?: string;
+  artifactFiles?: OntologyArtifactFile[];
   fabricArtifactId?: string;
   entities: OntologyEntity[];
   relationships?: OntologyRelationship[];
+  bindings?: OntologyBinding[];
   history?: OntologyHistoryEntry[];
 }

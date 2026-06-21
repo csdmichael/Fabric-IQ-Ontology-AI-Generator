@@ -3,19 +3,20 @@
 @import '@ionic/angular/css/structure.css';
 @import '@ionic/angular/css/typography.css';
 @import '@ionic/angular/css/display.css';
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
 :root {
-  --ion-color-primary: #0078d4;
-  --ion-color-primary-rgb: 0, 120, 212;
+  --ion-color-primary: #0c5ea8;
+  --ion-color-primary-rgb: 12, 94, 168;
   --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-shade: #006abd;
-  --ion-color-primary-tint: #1a86d8;
-  --ion-color-secondary: #243a5e;
-  --ion-color-light: #f5f9ff;
-  --ion-color-medium: #6b7b93;
+  --ion-color-primary-shade: #0a4f8d;
+  --ion-color-primary-tint: #2472bc;
+  --ion-color-secondary: #087f75;
+  --ion-color-light: #f6fbff;
+  --ion-color-medium: #5d738f;
   --ion-color-dark: #102542;
   --fabric-iq-shell-max-width: 1280px;
-  --fabric-iq-surface: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  --fabric-iq-surface: radial-gradient(circle at 0% 0%, #dff2ff 0%, #f8fcff 40%, #ffffff 100%);
 }
 
 html,
@@ -27,9 +28,19 @@ ion-app {
 
 body {
   margin: 0;
-  font-family: Inter, 'Segoe UI', sans-serif;
+  font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
   background: var(--fabric-iq-surface);
   color: #102542;
+}
+
+h1,
+h2,
+h3,
+h4,
+ion-title,
+ion-card-title {
+  font-family: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 main.app-shell {
@@ -48,26 +59,159 @@ main.app-shell {
   gap: 1rem;
 }
 
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .visual-shell {
   min-height: 280px;
-  border: 1px dashed rgba(0, 120, 212, 0.35);
+  border: 1px dashed rgba(12, 94, 168, 0.35);
   border-radius: 20px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 247, 255, 0.95));
 }
 
 .brand-gradient {
-  background: linear-gradient(135deg, #0078d4 0%, #49a8ff 100%);
+  background: linear-gradient(135deg, #0c5ea8 0%, #3f8ed8 52%, #0d9b90 100%);
   color: #ffffff;
 }
 
 .muted {
-  color: #5f6b7a;
+  color: #4f6683;
+}
+
+ion-card {
+  border: 1px solid rgba(23, 84, 132, 0.11);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(16, 37, 66, 0.08);
+}
+
+ion-content {
+  --background: transparent;
+}
+
+ion-item {
+  --border-radius: 14px;
+  --padding-start: 10px;
+  margin-bottom: 0.4rem;
+}
+
+.menu-header {
+  background: linear-gradient(150deg, #0f243f 0%, #245a91 70%, #2f9188 100%);
+  color: #fff;
+  padding: 1.3rem 1rem;
+}
+
+.brand-wrap h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.brand-wrap p {
+  margin: 0.2rem 0 0;
+  opacity: 0.88;
+}
+
+.menu-section {
+  margin: 0.5rem 0;
+}
+
+.menu-section h2 {
+  margin: 0.9rem 1rem 0.4rem;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  color: #42648e;
+  letter-spacing: 0.06em;
+}
+
+.active-item {
+  --background: rgba(12, 94, 168, 0.14);
+  --color: #0c5ea8;
+  border-radius: 12px;
+}
+
+.top-header ion-toolbar {
+  --background: rgba(252, 254, 255, 0.9);
+  --border-color: rgba(70, 106, 142, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-right: 0.5rem;
+}
+
+.entity-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1rem;
+}
+
+.entity-sidebar {
+  border-right: 1px solid rgba(48, 83, 120, 0.15);
+  padding-right: 0.8rem;
+}
+
+.entity-selected {
+  --background: rgba(11, 89, 159, 0.14);
+  --color: #0b5494;
+  border-radius: 14px;
+}
+
+.entity-editor h3 {
+  margin: 1rem 0 0.6rem;
+}
+
+.property-row {
+  border: 1px solid rgba(58, 91, 126, 0.16);
+  border-radius: 14px;
+  padding: 0.7rem;
+  margin-bottom: 0.7rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.graph-node {
+  cursor: pointer;
+}
+
+.graph-node:hover rect {
+  filter: drop-shadow(0 6px 12px rgba(9, 61, 111, 0.26));
 }
 
 @media (max-width: 991px) {
   .card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .entity-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .entity-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid rgba(48, 83, 120, 0.15);
+    padding-right: 0;
+    padding-bottom: 0.8rem;
   }
 
   main.app-shell {
@@ -78,6 +222,14 @@ main.app-shell {
 @media (max-width: 767px) {
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-controls {
+    gap: 0.2rem;
   }
 
   ion-toolbar {

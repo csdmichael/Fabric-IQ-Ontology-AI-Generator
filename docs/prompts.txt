@@ -4,10 +4,15 @@ Create a complete project scaffold for "Fabric IQ Ontology AI Generator".
 
 The application is a frontend UI for business teams to:
 - Write a business case in plain English.
-- Configure Microsoft Fabric and Azure connections.
-- Ask an AI agent to generate a draft Fabric ontology.
+- Ask a business Foundry agent to generate a draft ontology without requiring Fabric connection.
 - Review business entities and properties.
-- Bind ontology entities to OneLake tables and views.
+- Save ontology drafts and submit them to IT.
+
+The application must also support IT teams to:
+- Configure Microsoft Fabric Workspace/Lakehouse connections.
+- Prompt an IT Foundry agent to generate Lakehouse view mappings and bindings.
+- Add/edit/delete bindings and submit bound ontologies.
+- Generate ontology package files (`ttl`, `entities.json`, `relationships.json`, `bindings.json`) and save them to blob storage for admin deployment.
 
 Scaffold requirements:
 - Angular 17 + Ionic 7 frontend using standalone components.
@@ -26,9 +31,9 @@ Scaffold requirements:
 Add authentication using OTP and Entra ID similar to this project: https://github.com/csdmichael/Fabric-IQ-Ontology-Parts-Shortages
 refer to authentication in this repo: C:\Projects\Fabric\Fabric-IQ-Ontology-Parts-Shortages .
 - Create 4 roles for users: business user, IT user, Admin, App Owner
-    - Business User can create business ontology entitiess, relationships, edit via ui or using foundry agent chat in ui. After reviewing ontology, user submit it for data binding which is done by IT user
-    - IT User can configure Fabric Lakehouse for tables, use its own foundry agent in ui to bind ontology business entities to data in one lake tables automatically and generate ontology files that get saved in blob storage.
-    - Admin can do all functionalities of business user and IT user plus can be able to trigger ONtology deployment to Fabric after IT User binds data to business entities and submits ontology for deployment
+    - Business User can create/edit business ontology entities/properties/relationships via UI or business foundry agent chat and submit drafts to IT for data binding.
+    - IT User can configure Fabric Lakehouse, use IT foundry agent to bind ontology entities to OneLake tables/views, review/edit bindings, and submit bound ontology packages saved to blob storage.
+    - Admin can do all functionalities of business user and IT user plus trigger ontology deployment to Fabric after IT submission.
     - App Owner can do everything Admin user does plus ability to maintain users to App (Add, edit, remove users and set their authentication method for OTP versus Entra ID)
     - Domain for Entra ID authentication is: "@MngEnvMCAP829495.onmicrosoft.com"
     - Add these users as App Owners: admin@MngEnvMCAP829495.onmicrosoft.com (use Entra ID to authenticate), myaacoub@MngEnvMCAP829495.onmicrosoft.com (use Entra ID to authenticate), myaacoub@microsoft.com (use OTP to authenticate)

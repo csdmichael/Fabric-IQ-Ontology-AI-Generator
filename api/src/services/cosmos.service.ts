@@ -32,12 +32,12 @@ export class CosmosService {
           id: 'customer',
           name: 'Customer',
           description: 'Represents a business customer.',
-          sourceTable: 'lakehouse.sales_customers',
           properties: [
             { id: 'customer-id', name: 'customer_id', type: 'string', sourceColumn: 'customer_id' }
           ]
         }
       ],
+      bindings: [],
       relationships: []
     };
 
@@ -65,10 +65,12 @@ export class CosmosService {
       updatedAt: now,
       entities: input.entities ?? existing?.entities ?? [],
       relationships: input.relationships ?? existing?.relationships ?? [],
+      bindings: input.bindings ?? existing?.bindings ?? [],
       history: existing?.history ?? [],
       createdBy: existing?.createdBy ?? actor?.email ?? 'anonymous',
       lastModifiedBy: actor?.email ?? existing?.lastModifiedBy,
       blobUri: input.blobUri ?? existing?.blobUri,
+      artifactFiles: input.artifactFiles ?? existing?.artifactFiles,
       fabricArtifactId: input.fabricArtifactId ?? existing?.fabricArtifactId
     };
 

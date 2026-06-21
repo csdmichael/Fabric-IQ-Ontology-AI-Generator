@@ -14,6 +14,8 @@ export interface OntologyProperty {
   id: string;
   name: string;
   type: OntologyPropertyType;
+  sourceTable?: string;
+  sourceView?: string;
   sourceColumn?: string;
   description?: string;
 }
@@ -32,7 +34,24 @@ export interface OntologyEntity {
   name: string;
   description: string;
   sourceTable?: string;
+  sourceView?: string;
   properties: OntologyProperty[];
+}
+
+export interface OntologyBinding {
+  id: string;
+  entityId: string;
+  propertyId?: string;
+  lakehouseTable: string;
+  lakehouseView?: string;
+  sourceField: string;
+  notes?: string;
+}
+
+export interface OntologyArtifactFile {
+  type: 'ttl' | 'entities-json' | 'relationships-json' | 'bindings-json';
+  blobName: string;
+  uri: string;
 }
 
 export interface OntologyHistoryEntry {
@@ -53,10 +72,12 @@ export interface Ontology {
   updatedAt: string;
   entities: OntologyEntity[];
   relationships?: OntologyRelationship[];
+  bindings?: OntologyBinding[];
   history?: OntologyHistoryEntry[];
   createdBy?: string;
   lastModifiedBy?: string;
   blobUri?: string;
+  artifactFiles?: OntologyArtifactFile[];
   fabricArtifactId?: string;
 }
 

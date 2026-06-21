@@ -38,7 +38,7 @@ export class GeneratePage {
   private readonly generateService = inject(GenerateService);
   private readonly router = inject(Router);
 
-  protected businessCase = 'Our retail team needs a customer and order ontology mapped to lakehouse sales tables and customer support views.';
+  protected businessCase = 'Create a business ontology for retail operations with customers, orders, products, and fulfillment events.';
   protected promptSummary = '';
   protected generatedOntology?: Ontology;
   protected isGenerating = false;
@@ -59,7 +59,7 @@ export class GeneratePage {
       },
       error: () => {
         this.generatedOntology = undefined;
-        this.promptSummary = 'Generation service unavailable.';
+        this.promptSummary = 'Generation service unavailable. Please try again.';
         this.isGenerating = false;
       }
     });

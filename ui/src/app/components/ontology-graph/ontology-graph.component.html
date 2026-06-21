@@ -1,20 +1,68 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-title>Ontology visualization</ion-card-title>
+    <ion-card-title>Ontology graph</ion-card-title>
   </ion-card-header>
   <ion-card-content>
     <div class="visual-shell">
-      <svg viewBox="0 0 640 240" width="100%" height="240" aria-label="Ontology entity graph preview">
+      <svg viewBox="0 0 900 420" width="100%" height="320" aria-label="Ontology entity graph preview">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#45658f"></path>
+          </marker>
+        </defs>
+
+        @for (relationship of ontology.relationships ?? []; track relationship.id) {
+          @if (ontology.entities && ontology.entities.length) {
+            @if (entityIndex(relationship.fromEntityId) >= 0 && entityIndex(relationship.toEntityId) >= 0) {
+              <line
+                [attr.x1]="nodeX(entityIndex(relationship.fromEntityId)) + 70"
+                [attr.y1]="nodeY(entityIndex(relationship.fromEntityId))"
+                [attr.x2]="nodeX(entityIndex(relationship.toEntityId)) - 70"
+                [attr.y2]="nodeY(entityIndex(relationship.toEntityId))"
+                stroke="#45658f"
+                stroke-width="2"
+                marker-end="url(#arrow)"
+              ></line>
+              <text
+                [attr.x]="(nodeX(entityIndex(relationship.fromEntityId)) + nodeX(entityIndex(relationship.toEntityId))) / 2"
+                [attr.y]="(nodeY(entityIndex(relationship.fromEntityId)) + nodeY(entityIndex(relationship.toEntityId))) / 2 - 8"
+                fill="#223856"
+                font-size="12"
+                text-anchor="middle"
+              >
+                {{ relationship.name }}
+              </text>
+            }
+          }
+        }
+
         @for (entity of ontology.entities; track entity.id; let index = $index) {
-          <g [attr.transform]="'translate(' + (20 + ((index % 3) * 205)) + ',' + (20 + (math.floor(index / 3) * 110)) + ')'">
-            <rect width="180" height="72" rx="16" fill="#eff6ff" stroke="#0078d4"></rect>
-            <text x="16" y="30" fill="#102542" font-size="16" font-weight="600">{{ entity.name }}</text>
-            <text x="16" y="52" fill="#5f6b7a" font-size="12">{{ entity.properties.length }} properties</text>
+          <g
+            class="graph-node"
+            role="button"
+            tabindex="0"
+            (click)="selectEntity(entity.id)"
+            [attr.transform]="'translate(' + (nodeX(index) - 70) + ',' + (nodeY(index) - 42) + ')'"
+          >
+            <rect
+              width="140"
+              height="84"
+              rx="18"
+              [attr.fill]="selectedEntityId === entity.id ? '#0f243f' : '#f0f7ff'"
+              [attr.stroke]="selectedEntityId === entity.id ? '#87c4ff' : '#2f6ea9'"
+              stroke-width="2"
+            ></rect>
+            <text x="12" y="30" [attr.fill]="selectedEntityId === entity.id ? '#e7f4ff' : '#102542'" font-size="15" font-weight="700">
+              {{ entity.name }}
+            </text>
+            <text x="12" y="53" [attr.fill]="selectedEntityId === entity.id ? '#b9d8ff' : '#4f6480'" font-size="12">
+              {{ entity.properties.length }} properties
+            </text>
           </g>
         }
       </svg>
       @if (!ontology.entities.length) {
-        <ion-text class="muted">Generate or add entities to preview the ontology graph layout.</ion-text>
+        <ion-text class="muted">Generate or add entities to preview relationships and business concepts.</ion-text>
       }
     </div>
   </ion-card-content>

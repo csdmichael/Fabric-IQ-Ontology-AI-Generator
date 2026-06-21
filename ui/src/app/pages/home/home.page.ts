@@ -29,29 +29,31 @@ export class HomePage implements OnInit {
   private readonly ontologyService = inject(OntologyService);
 
   protected summaryCards: SummaryCard[] = [
-    { title: 'Draft ontologies', value: '0', detail: 'AI-generated models ready for review' },
-    { title: 'Connected sources', value: '0', detail: 'OneLake tables, views, and endpoints' },
-    { title: 'Workspace status', value: 'Ready', detail: 'Configuration can be completed in Settings' }
+    { title: 'Business drafts', value: '0', detail: 'Ontologies created from plain English prompts' },
+    { title: 'IT-ready submissions', value: '0', detail: 'Drafts handed to IT for Fabric binding' },
+    { title: 'Deployment packages', value: '0', detail: 'Ontologies with generated ttl/json artifacts' }
   ];
 
   ngOnInit(): void {
     this.ontologyService.listOntologies().subscribe({
       next: (ontologies) => {
+        const waitingForIt = ontologies.filter((ontology) => ontology.status === 'awaiting_data_binding').length;
+        const packaged = ontologies.filter((ontology) => (ontology.artifactFiles?.length ?? 0) > 0).length;
         this.summaryCards = [
-          { title: 'Draft ontologies', value: String(ontologies.length), detail: 'Business-aligned ontology workspaces' },
+          { title: 'Business drafts', value: String(ontologies.length), detail: 'Business-aligned ontology workspaces' },
           {
-            title: 'Connected sources',
-            value: String(ontologies.reduce((total, ontology) => total + ontology.entities.length, 0)),
-            detail: 'Entities linked to Fabric data assets'
+            title: 'IT-ready submissions',
+            value: String(waitingForIt),
+            detail: 'Drafts waiting for IT data binding'
           },
-          { title: 'Workspace status', value: 'Ready', detail: 'Configure Fabric, Cosmos, and AI services' }
+          { title: 'Deployment packages', value: String(packaged), detail: 'TTL + JSON artifacts staged in blob storage' }
         ];
       },
       error: () => {
         this.summaryCards = [
-          { title: 'Draft ontologies', value: '0', detail: 'Business-aligned ontology workspaces' },
-          { title: 'Connected sources', value: '0', detail: 'Entities linked to Fabric data assets' },
-          { title: 'Workspace status', value: 'Ready', detail: 'Configure Fabric, Cosmos, and AI services' }
+          { title: 'Business drafts', value: '0', detail: 'Business-aligned ontology workspaces' },
+          { title: 'IT-ready submissions', value: '0', detail: 'Drafts waiting for IT data binding' },
+          { title: 'Deployment packages', value: '0', detail: 'TTL + JSON artifacts staged in blob storage' }
         ];
       }
     });

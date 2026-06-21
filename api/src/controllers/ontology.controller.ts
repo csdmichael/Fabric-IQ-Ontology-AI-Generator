@@ -84,10 +84,25 @@ export class OntologyController {
       return;
     }
 
-    // Persist the artifact to blob so the Fabric workflow can consume it.
+    // Persist deployable ontology package artifacts to blob for admin deployment.
+    const packageResult = await blobService.saveOntologyPackage(updated.id, {
+      name: updated.name,
+      entities: updated.entities,
+      relationships: updated.relationships,
+      bindings: updated.bindings
+    });
+
     const artifact = await blobService.saveOntologyArtifact(updated.id, updated);
     const withBlob = await cosmosService.upsertOntology(
-      { id: updated.id, blobUri: artifact.uri },
+      {
+        id: updated.id,
+        blobUri: artifact.uri,
+        artifactFiles: packageResult.files.map((file) => ({
+          type: file.type,
+          blobName: file.blobName,
+          uri: file.uri
+        }))
+      },
       request.user
     );
 

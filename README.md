@@ -18,7 +18,7 @@
 
 ## Overview
 
-Fabric IQ Ontology AI Generator helps business teams describe a business case in plain English, connect to Microsoft Fabric and OneLake, and generate a draft ontology with business entities and properties. The scaffold includes an Angular + Ionic frontend, a Node/Express API, placeholder Azure service integrations, and starter tests.
+Fabric IQ Ontology AI Generator helps business teams describe a business case in plain English and generate a draft ontology with business entities, properties, and relationships before any Fabric connection is required. After business approval, IT teams add Microsoft Fabric Lakehouse bindings, generate ontology deployment artifacts, and submit to admins for Fabric deployment. The scaffold includes an Angular + Ionic frontend, a Node/Express API, placeholder Azure service integrations, and starter tests.
 
 ## Architecture
 
@@ -27,12 +27,13 @@ Fabric IQ Ontology AI Generator helps business teams describe a business case in
 The diagram above shows the end-to-end flow from a business user describing a use case in the UI through to a Fabric-bound, AI-generated ontology. The numbered steps below trace what happens at each tier.
 
 1. **Business user signs in** to the Angular 17 + Ionic 7 UI (`ui-fabriciq-b3.azurewebsites.net`). Authentication goes through Microsoft Entra ID (interactive popup) or an email + one-time code fallback; the UI receives a session token plus the user's role-based permissions.
-2. **Use case capture.** The user enters a plain-English business case, picks a target Fabric workspace, and optionally attaches sample data or column hints. The UI validates the input and posts it as JSON to the API.
-3. **API gateway and orchestration.** The Node.js + Express + TypeScript API (`api-fabriciq-b3.azurewebsites.net`) authorizes the call against the user's permissions, persists the draft to Cosmos DB, and stages the prompt + any uploaded artifacts in Blob Storage.
-4. **Foundry agent invocation.** The API calls the Microsoft Foundry **ontology-generator** agent with the business case and any datasource context. The agent returns a structured ontology (entities, properties, relationships, glossary).
-5. **Review and refine.** The UI renders the draft in the ontology editor with a graph view. The user can hand-edit, or invoke the **ontology-data-binder** agent to map ontology entities to Fabric tables, columns, and measures.
-6. **Submit for binding / deployment.** Privileged roles (IT, Admin) submit the ontology through the approval workflow. State transitions are persisted in Cosmos DB and surfaced in the dashboard.
-7. **Deploy to Microsoft Fabric.** On approval, the API hands the ontology to the Fabric service layer, which materializes it as a semantic model in the target Fabric workspace via the Fabric REST APIs and OneLake.
+2. **Business prompt capture (no Fabric required).** The business user enters a plain-English prompt in the UI. No workspace connection is required at this stage.
+3. **Ontology generation.** The API calls the Microsoft Foundry **ontology-generator** agent and persists a business draft (entities, properties, relationships) to Cosmos DB.
+4. **Graph-based review and editing.** The business user reviews and edits entities, relationships, and properties in the ontology graph/editor, then saves as draft.
+5. **Submit draft to IT.** The business user submits the draft for IT data binding (`awaiting_data_binding`).
+6. **IT Fabric binding.** IT configures Lakehouse connection and uses the **ontology-data-binder** agent + manual controls to map entity/property fields to Lakehouse tables/views.
+7. **Package generation for deployment.** When IT submits the bound ontology, the API generates and stores `ontology.ttl`, `entities.json`, `relationships.json`, and `bindings.json` in Blob Storage.
+8. **Admin deployment to Fabric.** Admin triggers deployment from the UI; the API dispatches the Fabric deployment flow using the packaged ontology artifacts.
 8. **Observability and CI/CD.** All tiers emit logs/metrics. The repo is built and deployed via GitHub Actions (OIDC → User-Assigned Managed Identity → Azure App Service) with separate `deploy-api` and `deploy-ui` workflows (see [CI/CD & GitHub Workflows](#cicd--github-workflows)).
 
 For the full text-based architecture reference (ASCII diagram + service inventory), see [docs/architecture.md](docs/architecture.md).
@@ -51,10 +52,10 @@ For the full text-based architecture reference (ASCII diagram + service inventor
 
 ## Features
 
-- Angular 17 + Ionic 7 standalone UI scaffold
-- Ontology dashboard, list, editor, generation, and settings screens
-- Reusable ontology card, entity list, and visualization shell components
-- Node.js + TypeScript API for ontology CRUD, datasource config, generation, and health
+- Angular 17 + Ionic 7 standalone UI with role-aware business and IT workflows
+- Graph-first ontology studio for entities, properties, relationships, and Lakehouse bindings
+- Business prompt generation flow that does not require Fabric connection
+- Node.js + TypeScript API for ontology CRUD, status transitions, and artifact packaging
 - Placeholder integrations for Cosmos DB, Blob Storage, Fabric / OneLake, and OpenAI / Azure OpenAI
 - Environment-driven configuration for local development and deployment
 - Workspace scripts for running UI and API together
@@ -235,9 +236,9 @@ Roles (enforced per-route via `requirePermission`):
 
 | Role | Permissions |
 | --- | --- |
-| Business User | Create / edit / submit ontology drafts; chat with Ontology Generator agent |
-| IT User | Configure Fabric lakehouse; bind ontology entities to OneLake tables; chat with Ontology Data Binder agent |
-| Admin | All business + IT permissions; trigger Fabric ontology deployment |
+| Business User | Prompt and edit ontology drafts (entities/properties/relationships), save draft, submit to IT |
+| IT User | Configure Fabric lakehouse connection, bind entities/properties to tables/views, submit packaged ontology |
+| Admin | All business + IT permissions; deploy packaged ontology artifacts to Fabric |
 | App Owner | All Admin permissions; manage users (create/edit/remove + set auth method) |
 
 Seed App Owners:
