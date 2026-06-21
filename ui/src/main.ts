@@ -1,6 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import {
@@ -29,6 +30,10 @@ function msalInstanceFactory(): IPublicClientApplication {
   });
 }
 
+function msalInitializeFactory(instance: IPublicClientApplication): () => Promise<void> {
+  return () => instance.initialize();
+}
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideAnimations(),
@@ -36,6 +41,12 @@ bootstrapApplication(AppComponent, {
     provideRouter(appRoutes),
     provideIonicAngular(),
     { provide: MSAL_INSTANCE, useFactory: msalInstanceFactory },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: msalInitializeFactory,
+      deps: [MSAL_INSTANCE],
+      multi: true
+    },
     MsalService
   ]
 }).catch((error: unknown) => {
