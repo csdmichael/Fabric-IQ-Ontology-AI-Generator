@@ -56,7 +56,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         env:
           ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
-          API_BASE_URL: https://${{ env.AZURE_API_WEBAPP_NAME }}.azurewebsites.net/api
+          API_BASE_URL: https://${{ env.AZURE_API_WEBAPP_NAME }}.azurewebsites.net
         run: |
           set -e
           test -n "$ENTRA_CLIENT_ID" || { echo "::error::ENTRA_CLIENT_ID secret is empty"; exit 1; }
