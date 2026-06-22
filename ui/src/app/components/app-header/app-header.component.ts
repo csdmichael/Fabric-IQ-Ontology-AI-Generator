@@ -10,6 +10,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { homeOutline, layersOutline, optionsOutline, sparklesOutline, logoLinkedin, logoGithub } from 'ionicons/icons';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-app-header',
@@ -20,19 +21,14 @@ import { homeOutline, layersOutline, optionsOutline, sparklesOutline, logoLinked
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppHeaderComponent {
+  protected readonly branding = environment.branding;
+
   protected readonly navItems = [
     { label: 'Home', path: '/', icon: 'homeOutline' },
     { label: 'Ontologies', path: '/ontologies', icon: 'layersOutline' },
     { label: 'Generate', path: '/generate', icon: 'sparklesOutline' },
     { label: 'Settings', path: '/settings', icon: 'optionsOutline' }
   ];
-
-  protected readonly profileInfo = {
-    name: 'Michael Yaacoub',
-    title: 'Sr Solution Engineer',
-    linkedIn: 'https://www.linkedin.com/in/michael-yaacoub-7a46436/',
-    github: 'https://www.github.com/csdmichael'
-  };
 
   constructor() {
     addIcons({logoLinkedin,logoGithub,homeOutline,layersOutline,sparklesOutline,optionsOutline});

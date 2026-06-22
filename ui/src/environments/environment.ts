@@ -16,6 +16,13 @@ export const environment = {
     systemName: 'Fabric IQ Ontology AI Generator',
     shortName: 'Fabric IQ',
     tagline: 'Design, bind, and ship business ontologies for Microsoft Fabric.',
-    supportEmail: 'myaacoub@microsoft.com'
+    supportEmail: 'myaacoub@microsoft.com',
+    showMicrosoftLogo: true,
+    profile: {
+      name: 'Michael Yaacoub',
+      title: 'Sr Solution Engineer',
+      linkedIn: 'https://www.linkedin.com/in/michael-yaacoub-7a46436/',
+      githubRepoUrl: 'https://www.github.com/csdmichel'
+    }
   }
 };

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonButton, IonFooter, IonIcon, IonText, IonToolbar } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { logoLinkedin, logoGithub } from 'ionicons/icons';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-app-footer',
@@ -14,13 +15,7 @@ import { logoLinkedin, logoGithub } from 'ionicons/icons';
 })
 export class AppFooterComponent {
   protected readonly year = new Date().getFullYear();
-
-  protected readonly creator = {
-    name: 'Michael Yaacoub',
-    title: 'Sr Solution Engineer',
-    linkedIn: 'https://www.linkedin.com/in/michael-yaacoub-7a46436/',
-    github: 'https://www.github.com/csdmichael'
-  };
+  protected readonly branding = environment.branding;
 
   constructor() {
     addIcons({ logoLinkedin, logoGithub });
