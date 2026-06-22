@@ -26,6 +26,13 @@ export class FabricService {
       type: 'view',
       workspaceId: environment.fabricWorkspaceId || 'local-workspace',
       itemName: 'vw_support_tickets'
+    },
+    {
+      id: 'part-shortages-lakehouse-v2',
+      name: 'Part Shortages v2',
+      type: 'lakehouse',
+      workspaceId: '2b2c447d-86e1-4982-a5b6-09d2e0f3482d',
+      itemName: 'lh_part_shortages_v2'
     }
   ];
 
