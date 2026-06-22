@@ -12,6 +12,8 @@ const ROLE_RANK: Record<UserRole, number> = {
   app_owner: 4
 };
 
+const OAUTH_CALLBACK_PATTERN = /(^|[#?&])(code|id_token|access_token|error)=/i;
+
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -29,7 +31,9 @@ export const authGuard: CanActivateFn = (_route, state) => {
   if (auth.isAuthenticated()) {
     return true;
   }
-  router.navigate(['/login'], { queryParams: { redirect: state.url } });
+
+  const redirect = sanitizeRedirectTarget(state.url);
+  router.navigate(['/login'], { queryParams: { redirect } });
   return false;
 };
 
@@ -37,7 +41,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isAuthenticated()) {
-    router.navigate(['/login'], { queryParams: { redirect: state.url } });
+    const redirect = sanitizeRedirectTarget(state.url);
+    router.navigate(['/login'], { queryParams: { redirect } });
     return false;
   }
 
@@ -60,3 +65,36 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   return true;
 };
+
+function sanitizeRedirectTarget(target: string | null | undefined): string {
+  if (!target) {
+    return '/';
+  }
+
+  let normalized = target.trim();
+  if (!normalized) {
+    return '/';
+  }
+
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const decoded = decodeURIComponent(normalized);
+      if (decoded === normalized) {
+        break;
+      }
+      normalized = decoded;
+    } catch {
+      break;
+    }
+  }
+
+  if (!normalized.startsWith('/')) {
+    return '/';
+  }
+
+  if (OAUTH_CALLBACK_PATTERN.test(normalized)) {
+    return '/';
+  }
+
+  return normalized;
+}

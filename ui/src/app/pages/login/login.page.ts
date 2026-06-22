@@ -28,6 +28,7 @@ import { AuthMethod } from '../../models/auth.model';
 import { AuthService } from '../../services/auth.service';
 
 type LoginStage = 'email' | 'otp' | 'entra';
+const OAUTH_CALLBACK_PATTERN = /(^|[#?&])(code|id_token|access_token|error)=/i;
 
 @Component({
   selector: 'app-login-page',
@@ -234,8 +235,42 @@ export class LoginPage {
   }
 
   private navigateAfterLogin(): void {
-    const redirect = this.route.snapshot.queryParamMap.get('redirect') ?? '/';
-    this.router.navigateByUrl(redirect);
+    const requested = this.route.snapshot.queryParamMap.get('redirect');
+    const redirect = this.sanitizeRedirectTarget(requested);
+    this.router.navigateByUrl(redirect, { replaceUrl: true });
+  }
+
+  private sanitizeRedirectTarget(target: string | null): string {
+    if (!target) {
+      return '/';
+    }
+
+    let normalized = target.trim();
+    if (!normalized) {
+      return '/';
+    }
+
+    for (let i = 0; i < 2; i += 1) {
+      try {
+        const decoded = decodeURIComponent(normalized);
+        if (decoded === normalized) {
+          break;
+        }
+        normalized = decoded;
+      } catch {
+        break;
+      }
+    }
+
+    if (!normalized.startsWith('/') || normalized.startsWith('/login')) {
+      return '/';
+    }
+
+    if (OAUTH_CALLBACK_PATTERN.test(normalized)) {
+      return '/';
+    }
+
+    return normalized;
   }
 
   private toMessage(error: unknown): string {
