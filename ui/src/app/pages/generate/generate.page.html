@@ -60,8 +60,32 @@
     <section class="results-section">
       <div class="result-header">
         <h2>{{ generatedOntology.name }}</h2>
-        <ion-button fill="clear" size="small" (click)="openEditor()">Edit in Studio</ion-button>
+        <div class="result-actions">
+          <ion-button fill="outline" size="small" [disabled]="isSavingDraft || !!draftSavedOntologyId" (click)="saveDraft()">
+            @if (isSavingDraft) {
+              <ion-spinner name="crescent"></ion-spinner>
+              Saving draft…
+            } @else if (draftSavedOntologyId) {
+              Draft Saved
+            } @else {
+              Save Draft
+            }
+          </ion-button>
+          <ion-button fill="clear" size="small" (click)="openEditor()">Edit in Studio</ion-button>
+        </div>
       </div>
+
+      @if (draftSaveMessage) {
+        <p class="draft-success">
+          {{ draftSaveMessage }}
+          <ion-button fill="clear" size="small" (click)="openMyOntologies()">Go to My Ontologies</ion-button>
+        </p>
+      }
+
+      @if (draftSaveError) {
+        <p class="draft-error">{{ draftSaveError }}</p>
+      }
+
       <p class="description">{{ generatedOntology.description }}</p>
       <div class="metrics">
         <span class="metric"><strong>{{ generatedOntology.entities.length }}</strong> entities</span>
