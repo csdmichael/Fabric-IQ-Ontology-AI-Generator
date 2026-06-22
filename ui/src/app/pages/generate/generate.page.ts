@@ -1,18 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonButton,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
   IonContent,
-  IonText,
+  IonSpinner,
   IonTextarea
 } from '@ionic/angular/standalone';
 
-import { AgentChatComponent } from '../../components/agent-chat/agent-chat.component';
 import { Ontology } from '../../models/ontology.model';
 import { GenerateService } from '../../services/generate.service';
 
@@ -20,17 +16,14 @@ import { GenerateService } from '../../services/generate.service';
   selector: 'app-generate-page',
   standalone: true,
   templateUrl: './generate.page.html',
+  styleUrls: ['./generate.page.scss'],
   imports: [
+    CommonModule,
     FormsModule,
     IonContent,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
     IonButton,
     IonTextarea,
-    IonText,
-    AgentChatComponent
+    IonSpinner
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -38,12 +31,10 @@ export class GeneratePage {
   private readonly generateService = inject(GenerateService);
   private readonly router = inject(Router);
 
-  protected businessCase = 'Create a business ontology for retail operations with customers, orders, products, and fulfillment events.';
+  protected businessCase = '';
   protected promptSummary = '';
   protected generatedOntology?: Ontology;
   protected isGenerating = false;
-
-  protected readonly agentContext = computed(() => ({ businessCase: this.businessCase }));
 
   protected runGeneration(): void {
     if (!this.businessCase.trim()) {
