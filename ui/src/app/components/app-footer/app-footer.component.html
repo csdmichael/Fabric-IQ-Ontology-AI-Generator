@@ -1,7 +1,24 @@
 <ion-footer>
-  <ion-toolbar>
-    <ion-text class="muted">
-      © {{ year }} Fabric IQ Contributors · Business ontology generation for Microsoft Fabric
-    </ion-text>
+  <ion-toolbar class="footer-toolbar">
+    <div class="footer-content">
+      <div class="footer-copyright">
+        <ion-text class="muted">
+          © {{ year }} Fabric IQ Contributors · Business ontology generation for Microsoft Fabric
+        </ion-text>
+      </div>
+      <div class="footer-creator">
+        <ion-text class="creator-info">
+          <span class="creator-name">{{ creator.name }}</span> · {{ creator.title }}
+        </ion-text>
+        <div class="creator-links">
+          <ion-button fill="clear" size="small" [href]="creator.linkedIn" target="_blank" title="LinkedIn">
+            <ion-icon name="logo-linkedin"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" [href]="creator.github" target="_blank" title="GitHub">
+            <ion-icon name="logo-github"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-footer>

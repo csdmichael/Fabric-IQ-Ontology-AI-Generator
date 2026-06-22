@@ -1,6 +1,30 @@
 <ion-header translucent="true">
   <ion-toolbar class="brand-gradient">
-    <ion-title>Fabric IQ Ontology AI Generator</ion-title>
+    <div class="header-content">
+      <div class="logo-section">
+        <svg class="ms-logo" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" width="32" height="32" aria-label="Microsoft">
+          <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+          <rect x="13" y="1" width="9" height="9" fill="#7FBA00" />
+          <rect x="1" y="13" width="9" height="9" fill="#00A4EF" />
+          <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
+        </svg>
+        <ion-title>Fabric IQ Ontology AI Generator</ion-title>
+      </div>
+      <div class="profile-section">
+        <div class="profile-info">
+          <div class="profile-name">{{ profileInfo.name }}</div>
+          <div class="profile-title">{{ profileInfo.title }}</div>
+        </div>
+        <div class="profile-links">
+          <ion-button fill="clear" size="small" [href]="profileInfo.linkedIn" target="_blank" title="LinkedIn">
+            <ion-icon name="logo-linkedin"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" [href]="profileInfo.github" target="_blank" title="GitHub">
+            <ion-icon name="logo-github"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
     <ion-buttons slot="end">
       @for (item of navItems; track item.path) {
         <ion-button [routerLink]="item.path" routerLinkActive="ion-activated">

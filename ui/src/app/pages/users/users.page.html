@@ -1,9 +1,15 @@
 <ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Directory & Roles</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
+  <section class="page-title-section">
+    <h1>Directory & Roles</h1>
+    <p>Manage user accounts and role assignments.</p>
+  </section>
+
+  <section class="card-content">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Directory & Roles</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
       <ion-list>
         <ion-item>
           <ion-label position="stacked">Email</ion-label>
@@ -55,10 +61,10 @@
       @if (error(); as err) {
         <ion-note color="danger">{{ err }}</ion-note>
       }
-    </ion-card-content>
-  </ion-card>
+      </ion-card-content>
+    </ion-card>
 
-  <ion-card>
+    <ion-card>
     <ion-card-header>
       <ion-card-title>Users</ion-card-title>
     </ion-card-header>
@@ -92,9 +98,9 @@
         }
       </ion-list>
     </ion-card-content>
-  </ion-card>
+    </ion-card>
 
-  <ion-card>
+    <ion-card>
     <ion-card-header>
       <ion-card-title>Login audit</ion-card-title>
     </ion-card-header>
@@ -125,5 +131,6 @@
         }
       </ion-list>
     </ion-card-content>
-  </ion-card>
+    </ion-card>
+  </section>
 </ion-content>

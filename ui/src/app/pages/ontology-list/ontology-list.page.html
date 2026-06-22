@@ -1,9 +1,11 @@
 <ion-content fullscreen="true">
-  <section class="page-section">
+  <section class="page-title-section">
     <h1>Ontologies</h1>
-    <p class="muted">Review business drafts, complete IT bindings, and manage deployment-ready ontology packages.</p>
-    <ion-button routerLink="/generate">Create from prompt</ion-button>
-    <ion-button fill="outline" routerLink="/ontologies/new">Create manually</ion-button>
+    <p>Review business drafts, complete IT bindings, and manage deployment-ready ontology packages.</p>
+    <div class="page-title-actions">
+      <ion-button routerLink="/generate">Create from prompt</ion-button>
+      <ion-button fill="outline" routerLink="/ontologies/new">Create manually</ion-button>
+    </div>
   </section>
 
   @if (ontologies.length) {
