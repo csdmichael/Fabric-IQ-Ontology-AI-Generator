@@ -50,7 +50,7 @@ export class ArchitecturePage {
       intro: 'Single-page Angular 17 standalone app with Ionic components, served by the API host.',
       bullets: [
         'Side menu organized in three sections: Business Ontology Builder, IT Ontology Data Integration, System Documentation.',
-        'AuthService chooses Microsoft Entra ID (MSAL popup) for internal accounts and email OTP for guests.',
+        'AuthService chooses Microsoft Entra ID (silent-first with redirect fallback) for internal accounts and email OTP for guests.',
         'A single Bearer JWT (issued by the API) is attached to every request via an HttpInterceptor.',
         'Routes are guarded by `authGuard` (presence) and `roleGuard` (role / permission scope).'
       ]

@@ -114,6 +114,10 @@ export class LoginPage {
       shieldCheckmarkOutline,
       sparklesOutline
     });
+
+    if (this.auth.isAuthenticated()) {
+      queueMicrotask(() => this.navigateAfterLogin());
+    }
   }
 
   applyDomain(domain: string): void {
@@ -156,9 +160,11 @@ export class LoginPage {
             : `If ${email} is registered, you will receive a code shortly.`
         );
       } else {
-        this.infoMessage.set(
-          `Sign in with your Microsoft Entra ID account (${email}) using the popup.`
-        );
+        const session = await this.auth.loginWithEntra(email);
+        if (session) {
+          this.navigateAfterLogin();
+          return;
+        }
       }
     } catch (error) {
       this.errorMessage.set(this.toMessage(error));
@@ -190,8 +196,10 @@ export class LoginPage {
     this.busy.set(true);
     this.errorMessage.set(null);
     try {
-      await this.auth.loginWithEntra();
-      this.navigateAfterLogin();
+      const session = await this.auth.loginWithEntra(this.email());
+      if (session) {
+        this.navigateAfterLogin();
+      }
     } catch (error) {
       this.errorMessage.set(this.toMessage(error));
     } finally {

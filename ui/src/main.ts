@@ -13,6 +13,7 @@ import { MSAL_INSTANCE, MsalService } from '@azure/msal-angular';
 import { AppComponent } from './app/app.component';
 import { appRoutes } from './app/app.routes';
 import { authInterceptor } from './app/interceptors/auth.interceptor';
+import { AuthService } from './app/services/auth.service';
 import { environment } from './environments/environment';
 
 function msalInstanceFactory(): IPublicClientApplication {
@@ -29,14 +30,13 @@ function msalInstanceFactory(): IPublicClientApplication {
     },
     system: {
       allowNativeBroker: false,
-      asyncPopups: true,
       windowHashTimeout: 60000
     }
   });
 }
 
-function msalInitializeFactory(instance: IPublicClientApplication): () => Promise<void> {
-  return () => instance.initialize();
+function authInitializeFactory(auth: AuthService): () => Promise<void> {
+  return () => auth.initialize();
 }
 
 bootstrapApplication(AppComponent, {
@@ -48,8 +48,8 @@ bootstrapApplication(AppComponent, {
     { provide: MSAL_INSTANCE, useFactory: msalInstanceFactory },
     {
       provide: APP_INITIALIZER,
-      useFactory: msalInitializeFactory,
-      deps: [MSAL_INSTANCE],
+      useFactory: authInitializeFactory,
+      deps: [AuthService],
       multi: true
     },
     MsalService

@@ -1,7 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
-import { AuthenticationResult, PopupRequest } from '@azure/msal-browser';
+import {
+  AccountInfo,
+  AuthenticationResult,
+  InteractionRequiredAuthError,
+  RedirectRequest,
+  SilentRequest,
+  SsoSilentRequest
+} from '@azure/msal-browser';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../environments/environment';
@@ -16,8 +23,6 @@ const STORAGE_KEY = 'fabric-iq.session';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private static readonly ENTRA_POPUP_TIMEOUT_MS = 45_000;
-
   private readonly http = inject(HttpClient);
   private readonly msal = inject(MsalService);
   private readonly baseUrl = `${environment.apiUrl}/api/auth`;
@@ -64,29 +69,60 @@ export class AuthService {
     return session;
   }
 
-  async loginWithEntra(): Promise<AuthSession> {
-    const popupRequest: PopupRequest = {
-      scopes: environment.auth.scopes,
-      prompt: 'select_account'
-    };
+  async initialize(): Promise<void> {
+    await this.msal.instance.initialize();
 
-    const result: AuthenticationResult = await this.withTimeout(
-      firstValueFrom(this.msal.loginPopup(popupRequest)),
-      AuthService.ENTRA_POPUP_TIMEOUT_MS,
-      'Microsoft sign-in popup timed out. Allow popups for this site and try again.'
-    );
-    if (!result.idToken) {
-      throw new Error('Microsoft Entra ID returned no id_token.');
+    const redirectResult = await this.msal.instance.handleRedirectPromise();
+    if (redirectResult) {
+      await this.completeEntraSignIn(redirectResult);
+      return;
     }
 
-    const session = await firstValueFrom(
-      this.http.post<AuthSession>(`${this.baseUrl}/entra/login`, {
-        idToken: result.idToken,
-        accessToken: result.accessToken
-      })
-    );
-    this.persist(session);
-    return session;
+    const accounts = this.msal.instance.getAllAccounts();
+    if (!this.msal.instance.getActiveAccount() && accounts.length > 0) {
+      this.msal.instance.setActiveAccount(accounts[0]);
+    }
+  }
+
+  async loginWithEntra(loginHint?: string): Promise<AuthSession | null> {
+    const normalizedHint = loginHint?.trim().toLowerCase();
+    const account = this.findAccount(normalizedHint);
+
+    try {
+      const silentRequest: SilentRequest = {
+        scopes: environment.auth.scopes,
+        account: account ?? undefined
+      };
+      const silentResult = await this.msal.instance.acquireTokenSilent(silentRequest);
+      return await this.completeEntraSignIn(silentResult);
+    } catch (error) {
+      if (!(error instanceof InteractionRequiredAuthError)) {
+        throw error;
+      }
+    }
+
+    if (!account && normalizedHint) {
+      try {
+        const ssoRequest: SsoSilentRequest = {
+          scopes: environment.auth.scopes,
+          loginHint: normalizedHint
+        };
+        const ssoResult = await this.msal.instance.ssoSilent(ssoRequest);
+        return await this.completeEntraSignIn(ssoResult);
+      } catch (error) {
+        if (!(error instanceof InteractionRequiredAuthError)) {
+          throw error;
+        }
+      }
+    }
+
+    const redirectRequest: RedirectRequest = {
+      scopes: environment.auth.scopes,
+      prompt: 'select_account',
+      loginHint: normalizedHint
+    };
+    await this.msal.instance.loginRedirect(redirectRequest);
+    return null;
   }
 
   async loginAsGuest(): Promise<AuthSession> {
@@ -129,7 +165,7 @@ export class AuthService {
       window.localStorage.removeItem(STORAGE_KEY);
     }
     if (current?.user.authMethod === 'entra_id') {
-      this.msal.logoutPopup().subscribe({ error: () => undefined });
+      void this.msal.instance.logoutRedirect();
     }
   }
 
@@ -161,19 +197,42 @@ export class AuthService {
     }
   }
 
-  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
-      promise.then(
-        (value) => {
-          clearTimeout(timeoutId);
-          resolve(value);
-        },
-        (error) => {
-          clearTimeout(timeoutId);
-          reject(error);
-        }
-      );
-    });
+  private async completeEntraSignIn(result: AuthenticationResult): Promise<AuthSession> {
+    if (!result.idToken) {
+      throw new Error('Microsoft Entra ID returned no id_token.');
+    }
+
+    this.msal.instance.setActiveAccount(result.account);
+    const session = await firstValueFrom(
+      this.http.post<AuthSession>(`${this.baseUrl}/entra/login`, {
+        idToken: result.idToken,
+        accessToken: result.accessToken
+      })
+    );
+    this.persist(session);
+    return session;
+  }
+
+  private findAccount(loginHint?: string): AccountInfo | null {
+    const accounts = this.msal.instance.getAllAccounts();
+    if (accounts.length === 0) {
+      return null;
+    }
+
+    if (loginHint) {
+      const normalized = loginHint.toLowerCase();
+      const matched = accounts.find((candidate) => {
+        const username = candidate.username?.toLowerCase() ?? '';
+        const preferred =
+          (candidate.idTokenClaims?.['preferred_username'] as string | undefined)?.toLowerCase() ??
+          '';
+        return username === normalized || preferred === normalized;
+      });
+      if (matched) {
+        return matched;
+      }
+    }
+
+    return this.msal.instance.getActiveAccount() ?? accounts[0];
   }
 }
