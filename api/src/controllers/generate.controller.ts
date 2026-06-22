@@ -21,25 +21,36 @@ export class GenerateController {
       return;
     }
 
+    // Fast path: generate ontology immediately and return to user
     const result = await openAiService.generateOntologyDraft(businessCase);
-    await blobService.savePrompt(result.ontology.id, businessCase);
 
-    // Persist the generated draft so the rest of the workflow (binding / deployment) can take over.
-    if (request.body.persist !== false && request.user) {
-      const persisted = await cosmosService.upsertOntology(
-        {
-          id: result.ontology.id,
-          name: result.ontology.name,
-          description: result.ontology.description,
-          status: result.ontology.status,
-          businessCase: result.ontology.businessCase,
-          entities: result.ontology.entities
-        },
-        request.user
-      );
-      result.ontology = persisted;
-    }
-
+    // Return result immediately (do not wait for saves)
     response.status(200).json(result);
+
+    // Background operations: save prompt and persist to Cosmos (fire-and-forget)
+    // These operations don't block the user experience
+    void (async () => {
+      try {
+        await Promise.all([
+          blobService.savePrompt(result.ontology.id, businessCase),
+          request.body.persist !== false && request.user
+            ? cosmosService.upsertOntology(
+                {
+                  id: result.ontology.id,
+                  name: result.ontology.name,
+                  description: result.ontology.description,
+                  status: result.ontology.status,
+                  businessCase: result.ontology.businessCase,
+                  entities: result.ontology.entities
+                },
+                request.user
+              )
+            : Promise.resolve()
+        ]);
+      } catch (error) {
+        // Log background errors but don't block user
+        console.error('Background persist error:', error);
+      }
+    })();
   }
 }
