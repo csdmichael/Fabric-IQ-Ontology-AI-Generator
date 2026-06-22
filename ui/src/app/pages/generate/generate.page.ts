@@ -6,9 +6,12 @@ import { Router } from '@angular/router';
 import {
   IonButton,
   IonContent,
+  IonIcon,
   IonSpinner,
   IonTextarea
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronUp, chevronDown } from 'ionicons/icons';
 
 import { ONTOLOGY_SAMPLE_PROMPTS, OntologySamplePrompt } from '../../config/ontology-prompts.config';
 import { Ontology } from '../../models/ontology.model';
@@ -24,6 +27,7 @@ import { GenerateService } from '../../services/generate.service';
     FormsModule,
     IonContent,
     IonButton,
+    IonIcon,
     IonTextarea,
     IonSpinner
   ],
@@ -33,12 +37,17 @@ export class GeneratePage {
   private readonly generateService = inject(GenerateService);
   private readonly router = inject(Router);
 
+  constructor() {
+    addIcons({ chevronUp, chevronDown });
+  }
+
   protected businessCase = '';
   protected promptSummary = '';
   protected generatedOntology?: Ontology;
   protected isGenerating = false;
   protected generationDurationMs?: number;
   protected samplePromptFeedback = '';
+  protected showSamplePrompts = false;
   protected readonly samplePrompts: OntologySamplePrompt[] = ONTOLOGY_SAMPLE_PROMPTS;
 
   protected runGeneration(): void {
