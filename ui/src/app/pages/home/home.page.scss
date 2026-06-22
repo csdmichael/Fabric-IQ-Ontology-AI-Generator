@@ -72,7 +72,7 @@
 
 // Workflow Diagram Section
 .workflow-section {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2.5rem 2rem;
   background: #f8f9fa;
@@ -80,128 +80,326 @@
   h2 {
     font-size: 1.6rem;
     font-weight: 600;
-    margin: 0 0 2rem;
+    margin: 0 0 0.5rem;
     text-align: center;
     color: #333;
   }
 
+  .workflow-intro {
+    text-align: center;
+    color: #666;
+    margin: 0 0 2rem;
+    font-size: 0.95rem;
+  }
+
   .workflow-diagram {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
     margin-bottom: 2rem;
+    position: relative;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
   }
 
   .workflow-phase {
-    flex: 1;
-    min-width: 280px;
     background: white;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 1.5rem;
-    text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-top: 3px solid #667eea;
-    position: relative;
+    border-left: 4px solid;
 
-    &:nth-child(4) {
-      border-top-color: #764ba2;
-    }
+    &.phase-1 {
+      border-left-color: #667eea;
 
-    &:nth-child(6) {
-      border-top-color: #20c997;
-    }
+      .phase-header {
+        color: #667eea;
+      }
 
-    .phase-number {
-      position: absolute;
-      top: -15px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .phase-content {
-      margin-top: 1rem;
-    }
-
-    .phase-icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      font-size: 1.8rem;
-
-      &.business-user-icon {
+      .persona-badge {
         background: rgba(102, 126, 234, 0.1);
         color: #667eea;
       }
 
-      &.it-user-icon {
+      .agent-badge {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+      }
+    }
+
+    &.phase-2 {
+      border-left-color: #764ba2;
+
+      .phase-header {
+        color: #764ba2;
+      }
+
+      .persona-badge {
         background: rgba(118, 75, 162, 0.1);
         color: #764ba2;
       }
 
-      &.admin-icon {
+      .agent-badge {
+        background: rgba(118, 75, 162, 0.1);
+        color: #764ba2;
+      }
+    }
+
+    &.phase-3 {
+      border-left-color: #20c997;
+
+      .phase-header {
+        color: #20c997;
+      }
+
+      .persona-badge {
+        background: rgba(32, 201, 151, 0.1);
+        color: #20c997;
+      }
+
+      .agent-badge {
         background: rgba(32, 201, 151, 0.1);
         color: #20c997;
       }
     }
 
-    h3 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin: 0.5rem 0;
-      color: #333;
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+
+      .phase-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: currentColor;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
     }
 
-    .role-name {
-      font-size: 0.9rem;
-      color: #666;
-      font-weight: 500;
-      margin: 0.25rem 0 0.75rem;
-    }
-
-    .phase-description {
-      font-size: 0.95rem;
-      color: #555;
-      margin: 0.5rem 0 1rem;
-    }
-
-    .phase-highlights {
+    .phase-content {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 1.25rem;
+    }
+
+    .persona-container {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+
+      .persona-badge {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+
+      .persona-info {
+        margin: 0;
+
+        .persona-role {
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin: 0 0 0.25rem;
+          opacity: 0.7;
+        }
+
+        .persona-title {
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin: 0 0 0.5rem;
+          color: #333;
+        }
+
+        .persona-desc {
+          font-size: 0.85rem;
+          color: #666;
+          margin: 0;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .phase-divider {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #ccc;
+      margin: 0.5rem 0;
+    }
+
+    .agent-container {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1rem;
+      background: #fafbfc;
+      border-radius: 6px;
+      border-left: 2px solid currentColor;
+
+      .agent-badge {
+        width: 45px;
+        height: 45px;
+        min-width: 45px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+      }
+
+      .agent-info {
+        margin: 0;
+
+        .agent-label {
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin: 0 0 0.25rem;
+          opacity: 0.6;
+        }
+
+        .agent-name {
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 0 0 0.5rem;
+          color: #333;
+        }
+
+        .agent-desc {
+          font-size: 0.8rem;
+          color: #666;
+          margin: 0;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .output-label {
+      text-align: center;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 4px;
       font-size: 0.85rem;
+      font-weight: 600;
       color: #666;
-      text-align: left;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
     }
   }
 
-  .workflow-arrow {
-    color: #ccc;
-    font-size: 2rem;
-    display: flex;
+  .phase-connector {
+    display: none;
     align-items: center;
-    margin: 0 0.5rem;
+    justify-content: center;
+    color: #ccc;
+    font-size: 1.5rem;
 
-    ion-icon {
-      display: block;
+    @media (max-width: 1024px) {
+      display: flex;
+      transform: rotate(90deg);
+    }
+  }
+
+  .phase-target {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(26, 71, 42, 0.2);
+
+    .target-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+
+    .target-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      .target-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+      }
+
+      h4 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      p {
+        font-size: 0.95rem;
+        margin: 0 0 1rem;
+        opacity: 0.95;
+      }
+
+      .target-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
     }
 
     @media (max-width: 1024px) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .workflow-diagram {
+      grid-template-columns: 1fr;
+    }
+
+    .phase-connector {
+      display: flex;
       transform: rotate(90deg);
       margin: 1rem 0;
     }

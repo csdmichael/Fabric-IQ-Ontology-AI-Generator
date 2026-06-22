@@ -10,69 +10,131 @@
 
   <!-- Workflow Diagram Section -->
   <section class="workflow-section">
-    <h2>How it works</h2>
+    <h2>Agentic Workflow: Humans + AI</h2>
+    <p class="workflow-intro">Three-phase collaboration between domain experts, engineers, and autonomous AI agents</p>
     <div class="workflow-diagram">
       <!-- Phase 1: Author -->
-      <div class="workflow-phase">
-        <div class="phase-number">1</div>
+      <div class="workflow-phase phase-1">
+        <div class="phase-header">
+          <div class="phase-number">1</div>
+          <h3>AUTHOR</h3>
+        </div>
         <div class="phase-content">
-          <div class="phase-icon business-user-icon">
-            <ion-icon name="sparkles-outline"></ion-icon>
+          <div class="persona-container">
+            <div class="persona-badge business-user-badge">
+              <ion-icon name="sparkles-outline"></ion-icon>
+            </div>
+            <div class="persona-info">
+              <p class="persona-role">Business User</p>
+              <p class="persona-title">Domain Expert</p>
+              <p class="persona-desc">Describes business concepts, entities & relationships in plain language</p>
+            </div>
           </div>
-          <h3>Author</h3>
-          <p class="role-name">Business User</p>
-          <p class="phase-description">Describe your domain in plain English</p>
-          <div class="phase-highlights">
-            <span>• Generate entities</span>
-            <span>• Define relationships</span>
-            <span>• Review & save draft</span>
+          <div class="phase-divider">↓</div>
+          <div class="agent-container">
+            <div class="agent-badge">
+              <ion-icon name="sparkles-outline"></ion-icon>
+            </div>
+            <div class="agent-info">
+              <p class="agent-label">AGENT</p>
+              <p class="agent-name">Business Ontology Generator</p>
+              <p class="agent-desc">Generates entities, properties, relationships from natural language</p>
+            </div>
+          </div>
+          <div class="output-label">
+            <span>Ontology</span>
           </div>
         </div>
       </div>
 
-      <!-- Arrow -->
-      <div class="workflow-arrow">
+      <!-- Arrow to Phase 2 -->
+      <div class="phase-connector">
         <ion-icon name="chevron-forward-outline"></ion-icon>
       </div>
 
       <!-- Phase 2: Bind -->
-      <div class="workflow-phase">
-        <div class="phase-number">2</div>
+      <div class="workflow-phase phase-2">
+        <div class="phase-header">
+          <div class="phase-number">2</div>
+          <h3>BIND</h3>
+        </div>
         <div class="phase-content">
-          <div class="phase-icon it-user-icon">
-            <ion-icon name="cube-outline"></ion-icon>
+          <div class="persona-container">
+            <div class="persona-badge it-user-badge">
+              <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="persona-info">
+              <p class="persona-role">IT User</p>
+              <p class="persona-title">Data Engineer</p>
+              <p class="persona-desc">Points ontology at real source systems & Fabric data assets</p>
+            </div>
           </div>
-          <h3>Bind</h3>
-          <p class="role-name">IT User</p>
-          <p class="phase-description">Map to Fabric Lakehouse</p>
-          <div class="phase-highlights">
-            <span>• Connect to Lakehouse</span>
-            <span>• Bind to tables/views</span>
-            <span>• Validate schema</span>
+          <div class="phase-divider">↓</div>
+          <div class="agent-container">
+            <div class="agent-badge">
+              <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="agent-info">
+              <p class="agent-label">AGENT</p>
+              <p class="agent-name">IT Ontology Data Binder</p>
+              <p class="agent-desc">Maps ontology concepts to Fabric tables, views & schemas</p>
+            </div>
+          </div>
+          <div class="output-label">
+            <span>Bound Ontology</span>
           </div>
         </div>
       </div>
 
-      <!-- Arrow -->
-      <div class="workflow-arrow">
+      <!-- Arrow to Phase 3 -->
+      <div class="phase-connector">
         <ion-icon name="chevron-forward-outline"></ion-icon>
       </div>
 
-      <!-- Phase 3: Deploy -->
-      <div class="workflow-phase">
-        <div class="phase-number">3</div>
+      <!-- Phase 3: Approve & Deploy -->
+      <div class="workflow-phase phase-3">
+        <div class="phase-header">
+          <div class="phase-number">3</div>
+          <h3>APPROVE & DEPLOY</h3>
+        </div>
         <div class="phase-content">
-          <div class="phase-icon admin-icon">
-            <ion-icon name="rocket-outline"></ion-icon>
+          <div class="persona-container">
+            <div class="persona-badge admin-badge">
+              <ion-icon name="rocket-outline"></ion-icon>
+            </div>
+            <div class="persona-info">
+              <p class="persona-role">Admin</p>
+              <p class="persona-title">Approver / Governance</p>
+              <p class="persona-desc">Reviews & approves the bound ontology and generated IaC</p>
+            </div>
           </div>
-          <h3>Deploy</h3>
-          <p class="role-name">Admin</p>
-          <p class="phase-description">Approve & publish to Fabric</p>
-          <div class="phase-highlights">
-            <span>• Review bindings</span>
-            <span>• Approve ontology</span>
-            <span>• Deploy to Fabric IQ</span>
+          <div class="phase-divider">↓</div>
+          <div class="agent-container">
+            <div class="agent-badge">
+              <ion-icon name="rocket-outline"></ion-icon>
+            </div>
+            <div class="agent-info">
+              <p class="agent-label">AGENT</p>
+              <p class="agent-name">Infrastructure-as-Code Generator</p>
+              <p class="agent-desc">Generates & deploys TTL/JSON + IaC to Fabric</p>
+            </div>
           </div>
+          <div class="output-label">
+            <span>Infrastructure-as-Code</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Target: Microsoft Fabric -->
+      <div class="phase-target">
+        <div class="target-header">TARGET</div>
+        <div class="target-content">
+          <div class="target-icon">
+            <ion-icon name="layers-outline"></ion-icon>
+          </div>
+          <h4>Microsoft Fabric</h4>
+          <p>Ontology deployed & live in OneLake / Fabric IQ</p>
+          <span class="target-badge">Infrastructure as Code</span>
         </div>
       </div>
     </div>
