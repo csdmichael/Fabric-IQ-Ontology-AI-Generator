@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Agentic Workflow Personas](#agentic-workflow-personas)
 - [Deployed Endpoints](#deployed-endpoints)
 - [Features](#features)
 - [Authentication & Roles](#authentication--roles)
@@ -37,6 +38,39 @@ The diagram above shows the end-to-end flow from a business user describing a us
 8. **Observability and CI/CD.** All tiers emit logs/metrics. The repo is built and deployed via GitHub Actions (OIDC → User-Assigned Managed Identity → Azure App Service) with separate `deploy-api` and `deploy-ui` workflows (see [CI/CD & GitHub Workflows](#cicd--github-workflows)).
 
 For the full text-based architecture reference (ASCII diagram + service inventory), see [docs/architecture.md](docs/architecture.md).
+
+## Agentic Workflow Personas
+
+![Fabric IQ agentic workflow personas](docs/Agentic-Workflow-Personas.png)
+
+The agentic workflow combines human decision-makers with specialized AI agents. Humans define intent, approve transitions, and own governance. Agents accelerate generation and binding tasks while keeping humans in control of release gates.
+
+### Human personas
+
+| Persona | Primary goal | Main actions in workflow |
+| --- | --- | --- |
+| Business User | Define domain intent and validate business meaning | Write prompt, review generated entities/relationships, save draft, submit for IT binding |
+| IT User | Ground ontology in real Fabric data sources | Bind entities/properties to Lakehouse tables/views, validate mappings, submit deployment package |
+| Admin | Operate release and platform governance | Approve and trigger Fabric deployment, monitor deployment outcomes, enforce operational controls |
+| App Owner | Manage access and policy boundaries | Configure roles and permissions, onboard users, audit access and workflow ownership |
+
+### Agent personas
+
+| Agent | Responsibility | Trigger point |
+| --- | --- | --- |
+| `ontology-generator` | Transform business prompt into ontology draft (entities, properties, relationships) | Invoked during Generate flow by Business User |
+| `ontology-data-binder` | Propose/assist schema-to-Lakehouse bindings | Invoked during IT binding phase by IT User |
+
+### Human-agent interaction model
+
+1. Business User provides high-level domain context.
+2. `ontology-generator` returns a machine-generated draft.
+3. Business User edits and validates semantics, then saves/submits.
+4. IT User invokes `ontology-data-binder` to accelerate mapping.
+5. IT User finalizes bindings and submits a deployment-ready package.
+6. Admin approves and deploys to Fabric.
+
+This separation ensures agentic acceleration without removing human accountability at critical workflow checkpoints.
 
 ## Deployed Endpoints
 
