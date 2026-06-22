@@ -17,6 +17,8 @@
   --ion-color-dark: #102542;
   --fabric-iq-shell-max-width: 1280px;
   --fabric-iq-surface: radial-gradient(circle at 0% 0%, #dff2ff 0%, #f8fcff 40%, #ffffff 100%);
+  --app-chrome-header-height: 64px;
+  --app-chrome-footer-height: 48px;
 }
 
 html,
@@ -136,6 +138,52 @@ ion-item {
   --background: rgba(252, 254, 255, 0.9);
   --border-color: rgba(70, 106, 142, 0.15);
   backdrop-filter: blur(10px);
+  --min-height: var(--app-chrome-header-height);
+}
+
+.top-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  .ms-logo {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    display: inline-block;
+  }
+}
+
+ion-router-outlet#main-content {
+  display: block;
+  margin-top: var(--app-chrome-header-height);
+  margin-bottom: var(--app-chrome-footer-height);
+}
+
+.global-footer ion-toolbar {
+  --background: rgba(248, 251, 255, 0.96);
+  --border-color: rgba(70, 106, 142, 0.15);
+  --min-height: var(--app-chrome-footer-height);
+}
+
+.global-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0 0.75rem;
+  font-size: 0.82rem;
+  color: #355070;
+
+  a {
+    color: #0c5ea8;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 .auth-controls {
@@ -235,5 +283,17 @@ ion-item {
   ion-toolbar {
     --padding-start: 12px;
     --padding-end: 12px;
+  }
+
+  :root {
+    --app-chrome-header-height: 72px;
+    --app-chrome-footer-height: 68px;
+  }
+
+  .global-footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.35rem 0.75rem;
+    gap: 0.2rem;
   }
 }

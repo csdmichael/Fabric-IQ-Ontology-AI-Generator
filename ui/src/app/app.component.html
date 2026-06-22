@@ -27,7 +27,19 @@
     <ion-header class="top-header">
       <ion-toolbar>
         <ion-menu-button slot="start" menu="main-menu"></ion-menu-button>
-        <ion-title>{{ portalTitle }} — {{ portalSubtitle }}</ion-title>
+        <ion-title>
+          <div class="top-brand">
+            @if (branding.showMicrosoftLogo) {
+              <svg class="ms-logo" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-label="Microsoft">
+                <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+                <rect x="13" y="1" width="9" height="9" fill="#7FBA00" />
+                <rect x="1" y="13" width="9" height="9" fill="#00A4EF" />
+                <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
+              </svg>
+            }
+            <span>{{ portalTitle }} — {{ portalSubtitle }}</span>
+          </div>
+        </ion-title>
         <div slot="end" class="auth-controls">
           @if (isAuthenticated() && currentUser(); as user) {
             <ion-chip color="primary" outline="true" [title]="user.email">
@@ -53,4 +65,20 @@
   }
 
   <ion-router-outlet id="main-content"></ion-router-outlet>
+
+  @if (showAppChrome()) {
+    <ion-footer class="global-footer">
+      <ion-toolbar>
+        <div class="global-footer-content">
+          <span>© {{ year }} {{ branding.shortName }} Contributors</span>
+          <span>
+            {{ branding.profile.name }} · {{ branding.profile.title }} ·
+            <a [href]="branding.profile.githubRepoUrl" target="_blank" rel="noopener noreferrer">
+              {{ branding.profile.githubRepoUrl }}
+            </a>
+          </span>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
+  }
 </ion-app>

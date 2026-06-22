@@ -6,6 +6,7 @@ import {
   IonButton,
   IonChip,
   IonContent,
+  IonFooter,
   IonHeader,
   IonIcon,
   IonItem,
@@ -36,6 +37,7 @@ import {
 
 import { Permission } from './models/auth.model';
 import { AuthService } from './services/auth.service';
+import { environment } from '../environments/environment';
 
 interface NavItem {
   label: string;
@@ -61,6 +63,7 @@ interface NavSection {
     IonApp,
     IonMenu,
     IonHeader,
+    IonFooter,
     IonToolbar,
     IonTitle,
     IonContent,
@@ -79,8 +82,10 @@ export class AppComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly portalTitle = 'Fabric IQ';
+  protected readonly branding = environment.branding;
+  protected readonly portalTitle = this.branding.shortName;
   protected readonly portalSubtitle = 'Ontology AI Generator';
+  protected readonly year = new Date().getFullYear();
 
   protected readonly isAuthenticated = computed(() => this.auth.isAuthenticated());
   protected readonly currentUser = computed(() => this.auth.user());

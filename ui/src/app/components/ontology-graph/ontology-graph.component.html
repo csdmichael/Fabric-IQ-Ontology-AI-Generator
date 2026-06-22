@@ -4,62 +4,72 @@
   </ion-card-header>
   <ion-card-content>
     <div class="visual-shell">
-      <svg viewBox="0 0 900 420" width="100%" height="320" aria-label="Ontology entity graph preview">
+      <div class="graph-meta">
+        <span>{{ ontology.entities.length }} entities</span>
+        <span>{{ (ontology.relationships ?? []).length }} relationships</span>
+      </div>
+
+      <svg [attr.viewBox]="'0 0 ' + canvasWidth() + ' ' + canvasHeight()" width="100%" height="360" aria-label="Ontology entity graph preview">
         <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
             <path d="M0,0 L8,4 L0,8 z" fill="#45658f"></path>
           </marker>
+          <linearGradient id="node-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f8fcff"></stop>
+            <stop offset="100%" stop-color="#eaf3ff"></stop>
+          </linearGradient>
         </defs>
 
-        @for (line of relationshipLines(); track line.id) {
-          <line
-            [attr.x1]="line.x1"
-            [attr.y1]="line.y1"
-            [attr.x2]="line.x2"
-            [attr.y2]="line.y2"
-            stroke="#45658f"
-            stroke-width="2"
-            marker-end="url(#arrow)"
-          ></line>
-          <text
-            [attr.x]="line.labelX"
-            [attr.y]="line.labelY"
-            fill="#223856"
-            font-size="12"
-            text-anchor="middle"
-          >
-            {{ line.name }}
-          </text>
-        }
+        <g class="edge-layer">
+          @for (line of relationshipLines(); track line.id) {
+            <path [attr.d]="line.path" class="edge-path" marker-end="url(#arrow)"></path>
+          }
+        </g>
 
-        @for (entity of ontology.entities; track entity.id; let index = $index) {
-          <g
-            class="graph-node"
-            role="button"
-            tabindex="0"
-            (click)="selectEntity(entity.id)"
-            [attr.transform]="'translate(' + (nodeX(index) - 70) + ',' + (nodeY(index) - 42) + ')'"
-          >
-            <rect
-              width="140"
-              height="84"
-              rx="18"
-              [attr.fill]="selectedEntityId === entity.id ? '#0f243f' : '#f0f7ff'"
-              [attr.stroke]="selectedEntityId === entity.id ? '#87c4ff' : '#2f6ea9'"
-              stroke-width="2"
-            ></rect>
-            <text x="12" y="30" [attr.fill]="selectedEntityId === entity.id ? '#e7f4ff' : '#102542'" font-size="15" font-weight="700">
-              {{ entity.name }}
-            </text>
-            <text x="12" y="53" [attr.fill]="selectedEntityId === entity.id ? '#b9d8ff' : '#4f6480'" font-size="12">
-              {{ entity.properties.length }} properties
-            </text>
-          </g>
+        <g class="node-layer">
+          @for (node of graphNodes(); track node.id) {
+            <g
+              class="graph-node"
+              role="button"
+              tabindex="0"
+              (click)="selectEntity(node.id)"
+              (keydown)="onNodeKeyDown($event, node.id)"
+              [class.selected]="selectedEntityId === node.id"
+              [attr.transform]="nodeTranslate(node)"
+            >
+              <rect width="164" height="106" rx="18" class="node-card"></rect>
+              <text x="14" y="28" class="node-name">{{ node.name }}</text>
+              <text x="14" y="50" class="node-meta">{{ node.properties }} properties</text>
+              <text x="14" y="74" class="node-meta">In {{ node.incoming }} | Out {{ node.outgoing }}</text>
+            </g>
+          }
+        </g>
+
+        <g class="label-layer">
+          @for (line of relationshipLines(); track line.id) {
+            <g [attr.transform]="'translate(' + line.labelX + ',' + line.labelY + ')'">
+              <rect
+                [attr.x]="-(line.labelWidth / 2)"
+                y="-20"
+                [attr.width]="line.labelWidth"
+                height="36"
+                rx="9"
+                class="edge-label-box"
+              ></rect>
+              <text x="0" y="-5" text-anchor="middle" class="edge-label-name">{{ line.name }}</text>
+              <text x="0" y="9" text-anchor="middle" class="edge-label-cardinality">{{ line.cardinality }}</text>
+            </g>
+          }
+        </g>
+
+        @if (!ontology.entities.length) {
+          <text x="28" y="40" class="empty-state-text">Generate or add entities to preview relationships and business concepts.</text>
         }
       </svg>
-      @if (!ontology.entities.length) {
-        <ion-text class="muted">Generate or add entities to preview relationships and business concepts.</ion-text>
-      }
     </div>
+
+    @if (!ontology.entities.length) {
+      <ion-text class="muted">Generate or add entities to preview relationships and business concepts.</ion-text>
+    }
   </ion-card-content>
 </ion-card>

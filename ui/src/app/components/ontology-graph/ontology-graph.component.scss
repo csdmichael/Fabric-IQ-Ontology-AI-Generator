@@ -1,0 +1,94 @@
+.graph-meta {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.65rem;
+
+  span {
+    border: 1px solid rgba(15, 74, 130, 0.25);
+    background: rgba(236, 246, 255, 0.9);
+    color: #1a3f67;
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}
+
+.edge-path {
+  fill: none;
+  stroke: #45658f;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 6 3;
+  opacity: 0.95;
+}
+
+.graph-node {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  .node-card {
+    fill: url(#node-bg);
+    stroke: #2f6ea9;
+    stroke-width: 2;
+    transition: all 0.18s ease;
+  }
+
+  .node-name {
+    fill: #102542;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .node-meta {
+    fill: #4f6480;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  &:hover .node-card {
+    stroke: #0e67b5;
+    filter: drop-shadow(0 7px 14px rgba(12, 94, 168, 0.22));
+  }
+
+  &.selected {
+    .node-card {
+      fill: #0f243f;
+      stroke: #87c4ff;
+      filter: drop-shadow(0 8px 16px rgba(13, 66, 121, 0.35));
+    }
+
+    .node-name {
+      fill: #e7f4ff;
+    }
+
+    .node-meta {
+      fill: #b9d8ff;
+    }
+  }
+}
+
+.edge-label-box {
+  fill: rgba(255, 255, 255, 0.95);
+  stroke: rgba(23, 84, 132, 0.26);
+  stroke-width: 1;
+}
+
+.edge-label-name {
+  fill: #163357;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.edge-label-cardinality {
+  fill: #32567d;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.empty-state-text {
+  fill: #527195;
+  font-size: 13px;
+}
