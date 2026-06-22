@@ -6,8 +6,7 @@ import {
   AuthenticationResult,
   InteractionRequiredAuthError,
   RedirectRequest,
-  SilentRequest,
-  SsoSilentRequest
+  SilentRequest
 } from '@azure/msal-browser';
 import { firstValueFrom } from 'rxjs';
 
@@ -88,10 +87,15 @@ export class AuthService {
     const normalizedHint = loginHint?.trim().toLowerCase();
     const account = this.findAccount(normalizedHint);
 
+    if (!account) {
+      await this.redirectToEntraLogin(normalizedHint);
+      return null;
+    }
+
     try {
       const silentRequest: SilentRequest = {
         scopes: environment.auth.scopes,
-        account: account ?? undefined
+        account
       };
       const silentResult = await this.msal.instance.acquireTokenSilent(silentRequest);
       return await this.completeEntraSignIn(silentResult);
@@ -101,27 +105,7 @@ export class AuthService {
       }
     }
 
-    if (!account && normalizedHint) {
-      try {
-        const ssoRequest: SsoSilentRequest = {
-          scopes: environment.auth.scopes,
-          loginHint: normalizedHint
-        };
-        const ssoResult = await this.msal.instance.ssoSilent(ssoRequest);
-        return await this.completeEntraSignIn(ssoResult);
-      } catch (error) {
-        if (!this.isInteractionRequired(error)) {
-          throw error;
-        }
-      }
-    }
-
-    const redirectRequest: RedirectRequest = {
-      scopes: environment.auth.scopes,
-      prompt: 'select_account',
-      loginHint: normalizedHint
-    };
-    await this.msal.instance.loginRedirect(redirectRequest);
+    await this.redirectToEntraLogin(normalizedHint);
     return null;
   }
 
@@ -248,6 +232,25 @@ export class AuthService {
     const code =
       (error as { errorCode?: string }).errorCode ??
       (error as { code?: string }).code;
-    return code === 'no_account_error' || code === 'interaction_required' || code === 'login_required';
+    const message =
+      (error as { errorMessage?: string }).errorMessage ??
+      (error as { message?: string }).message ??
+      '';
+
+    return (
+      code === 'no_account_error' ||
+      code === 'interaction_required' ||
+      code === 'login_required' ||
+      message.includes('no_account_error')
+    );
+  }
+
+  private async redirectToEntraLogin(loginHint?: string): Promise<void> {
+    const redirectRequest: RedirectRequest = {
+      scopes: environment.auth.scopes,
+      prompt: 'select_account',
+      loginHint
+    };
+    await this.msal.instance.loginRedirect(redirectRequest);
   }
 }
