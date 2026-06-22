@@ -30,6 +30,7 @@ import { EntityListComponent } from '../../components/entity-list/entity-list.co
 import { OntologyGraphComponent } from '../../components/ontology-graph/ontology-graph.component';
 import { Ontology, OntologyBinding, OntologyEntity, OntologyRelationship } from '../../models/ontology.model';
 import { AuthService } from '../../services/auth.service';
+import { DatasourceService, DataSourceConnection } from '../../services/datasource.service';
 import { OntologyExportService } from '../../services/ontology-export.service';
 import { OntologyService } from '../../services/ontology.service';
 import { WorkflowService } from '../../services/workflow.service';
@@ -72,6 +73,7 @@ export class OntologyEditorPage implements OnInit {
   private readonly workflow = inject(WorkflowService);
   private readonly exporter = inject(OntologyExportService);
   private readonly auth = inject(AuthService);
+  private readonly datasourceService = inject(DatasourceService);
 
   protected ontology: Ontology = this.createEmptyOntology();
   protected statusMessage = 'Draft ontology with business entities first. Fabric bindings are added later by IT.';
@@ -79,6 +81,8 @@ export class OntologyEditorPage implements OnInit {
   protected readonly busy = signal(false);
   protected readonly guidedMode = signal(true);
   protected readonly currentStep = signal(1);
+  protected readonly availableDatasources = signal<DataSourceConnection[]>([]);
+  protected readonly selectedDatasource = signal<string | undefined>(undefined);
   protected readonly steps = [
     { id: 1, label: 'Metadata', title: 'Business Basics' },
     { id: 2, label: 'Entities', title: 'Define Entities' },
@@ -122,6 +126,16 @@ export class OntologyEditorPage implements OnInit {
   }
 
   ngOnInit(): void {
+    // Load available datasources for IT bindings
+    this.datasourceService.listDataSources().subscribe({
+      next: (datasources) => {
+        this.availableDatasources.set(datasources);
+      },
+      error: () => {
+        this.availableDatasources.set([]);
+      }
+    });
+
     const stateOntology = history.state.ontology as Ontology | undefined;
     const ontologyId = this.route.snapshot.paramMap.get('id');
 

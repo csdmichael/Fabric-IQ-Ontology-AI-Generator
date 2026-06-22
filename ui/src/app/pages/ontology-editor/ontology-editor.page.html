@@ -393,6 +393,15 @@
             <p class="muted">Business users can ignore this section. IT users can bind entities/properties to lakehouse tables and curated views.</p>
             <div class="form-grid">
               <ion-item>
+                <ion-label position="stacked">Available Datasource</ion-label>
+                <ion-select interface="popover" [ngModel]="selectedDatasource()" (ngModelChange)="selectedDatasource.set($event)">
+                  <ion-select-option value="">Select a datasource...</ion-select-option>
+                  @for (datasource of availableDatasources(); track datasource.id) {
+                    <ion-select-option [value]="datasource.id">{{ datasource.name }} ({{ datasource.type }})</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
                 <ion-label position="stacked">Entity</ion-label>
                 <ion-select interface="popover" [(ngModel)]="bindingDraft.entityId">
                   @for (entity of ontology.entities; track entity.id) {
