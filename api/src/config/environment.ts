@@ -91,7 +91,7 @@ export const environment: AppConfig = {
   jwtTtlSeconds: Number(process.env.JWT_TTL_SECONDS ?? 8 * 60 * 60),
   otpTtlSeconds: Number(process.env.OTP_TTL_SECONDS ?? 10 * 60),
   otpLength: Number(process.env.OTP_LENGTH ?? 6),
-  authAllowedEntraDomain: (process.env.AUTH_ALLOWED_ENTRA_DOMAIN ?? '@MngEnvMCAP829495.onmicrosoft.com').toLowerCase(),
+  authAllowedEntraDomain: (process.env.AUTH_ALLOWED_ENTRA_DOMAIN ?? '@mngenvmcap829495.onmicrosoft.com').toLowerCase(),
   entraTenantId: tenantId,
   entraClientId: process.env.ENTRA_CLIENT_ID ?? '',
   entraIssuer: process.env.ENTRA_ISSUER ?? `https://login.microsoftonline.com/${tenantId}/v2.0`,

@@ -1,20 +1,28 @@
 import { randomUUID } from 'crypto';
 
+import { Container, CosmosClient } from '@azure/cosmos';
+
 import { environment } from '../config/environment';
 import { ROLE_HIERARCHY } from '../config/roles';
 import { AuthMethod, UserRole } from '../types/auth.types';
 import { UserRecord, UserUpsertInput } from '../types/user.types';
 
+interface UserDocument extends UserRecord {
+  type: 'user';
+}
+
+const USER_DOCUMENT_TYPE = 'user';
+
 const SEED_APP_OWNERS: Array<Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt'>> = [
   {
-    email: 'admin@MngEnvMCAP829495.onmicrosoft.com',
+    email: 'admin@mngenvmcap829495.onmicrosoft.com',
     displayName: 'Admin (App Owner)',
     role: 'app_owner',
     authMethod: 'entra_id',
     enabled: true
   },
   {
-    email: 'myaacoub@MngEnvMCAP829495.onmicrosoft.com',
+    email: 'myaacoub@mngenvmcap829495.onmicrosoft.com',
     displayName: 'Michael Yaacoub (App Owner)',
     role: 'app_owner',
     authMethod: 'entra_id',
@@ -37,29 +45,118 @@ const SEED_APP_OWNERS: Array<Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt'>>
 export class UserService {
   private readonly users = new Map<string, UserRecord>();
   private readonly byEmail = new Map<string, string>();
+  private containerPromise: Promise<Container | null> | undefined;
 
   constructor() {
     const now = new Date().toISOString();
     for (const seed of SEED_APP_OWNERS) {
       const id = randomUUID();
-      const record: UserRecord = { ...seed, id, createdAt: now, updatedAt: now };
+      const record: UserRecord = {
+        ...seed,
+        email: seed.email.toLowerCase(),
+        id,
+        createdAt: now,
+        updatedAt: now
+      };
       this.users.set(id, record);
-      this.byEmail.set(seed.email.toLowerCase(), id);
+      this.byEmail.set(record.email, id);
     }
+
+    // Best effort: ensure seed app owners exist in Cosmos when configured.
+    void this.ensureSeedUsers();
   }
 
   async list(): Promise<UserRecord[]> {
-    return Array.from(this.users.values()).sort((a, b) => a.email.localeCompare(b.email));
+    const local = Array.from(this.users.values());
+    const container = await this.getContainer();
+    if (!container) {
+      return this.sortByEmail(local);
+    }
+
+    try {
+      const { resources } = await container.items
+        .query<UserDocument>({
+          query: 'SELECT * FROM c WHERE c.type = @type',
+          parameters: [{ name: '@type', value: USER_DOCUMENT_TYPE }]
+        })
+        .fetchAll();
+
+      for (const resource of resources) {
+        this.cache(this.toUser(resource));
+      }
+      return this.sortByEmail(Array.from(this.users.values()));
+    } catch (error) {
+      console.warn('[UserService] Failed to list users from Cosmos DB, using fallback store.', error);
+      return this.sortByEmail(local);
+    }
   }
 
   async findById(id: string): Promise<UserRecord | undefined> {
-    return this.users.get(id);
+    const local = this.users.get(id);
+    if (local) {
+      return local;
+    }
+
+    const container = await this.getContainer();
+    if (!container) {
+      return undefined;
+    }
+
+    try {
+      const { resources } = await container.items
+        .query<UserDocument>({
+          query: 'SELECT TOP 1 * FROM c WHERE c.type = @type AND c.id = @id',
+          parameters: [
+            { name: '@type', value: USER_DOCUMENT_TYPE },
+            { name: '@id', value: id }
+          ]
+        })
+        .fetchAll();
+
+      const user = resources[0] ? this.toUser(resources[0]) : undefined;
+      if (user) {
+        this.cache(user);
+      }
+      return user;
+    } catch (error) {
+      console.warn('[UserService] Failed to find user by id from Cosmos DB.', error);
+      return undefined;
+    }
   }
 
   async findByEmail(email: string): Promise<UserRecord | undefined> {
     const normalized = email.trim().toLowerCase();
     const id = this.byEmail.get(normalized);
-    return id ? this.users.get(id) : undefined;
+    const local = id ? this.users.get(id) : undefined;
+    if (local) {
+      return local;
+    }
+
+    const container = await this.getContainer();
+    if (!container) {
+      return undefined;
+    }
+
+    try {
+      const { resources } = await container.items
+        .query<UserDocument>({
+          query: 'SELECT TOP 1 * FROM c WHERE c.type = @type AND c.email = @email',
+          parameters: [
+            { name: '@type', value: USER_DOCUMENT_TYPE },
+            { name: '@email', value: normalized }
+          ]
+        })
+        .fetchAll();
+
+      const user = resources[0] ? this.toUser(resources[0]) : undefined;
+      if (user) {
+        this.cache(user);
+      }
+      return user;
+    } catch (error) {
+      console.warn('[UserService] Failed to find user by email from Cosmos DB.', error);
+      return undefined;
+    }
   }
 
   /**
@@ -79,9 +176,7 @@ export class UserService {
       if (existing.authMethod !== method) {
         return undefined;
       }
-      existing.lastLoginAt = new Date().toISOString();
-      existing.updatedAt = existing.lastLoginAt;
-      return existing;
+      return this.touchLastLogin(existing);
     }
 
     if (method === 'entra_id' && email.toLowerCase().endsWith(environment.authAllowedEntraDomain)) {
@@ -117,8 +212,17 @@ export class UserService {
       lastLoginAt: existing?.lastLoginAt
     };
 
-    this.users.set(record.id, record);
-    this.byEmail.set(record.email, record.id);
+    this.cache(record);
+
+    const container = await this.getContainer();
+    if (container) {
+      try {
+        await container.items.upsert(this.toDocument(record));
+      } catch (error) {
+        console.warn('[UserService] Failed to persist user to Cosmos DB.', error);
+      }
+    }
+
     return record;
   }
 
@@ -129,7 +233,106 @@ export class UserService {
     }
     this.users.delete(id);
     this.byEmail.delete(existing.email);
+
+    const container = await this.getContainer();
+    if (container) {
+      try {
+        await container.item(id, id).delete();
+      } catch (error) {
+        console.warn('[UserService] Failed to delete user from Cosmos DB.', error);
+      }
+    }
+
     return true;
+  }
+
+  private async touchLastLogin(record: UserRecord): Promise<UserRecord> {
+    const now = new Date().toISOString();
+    const updated: UserRecord = {
+      ...record,
+      lastLoginAt: now,
+      updatedAt: now
+    };
+    this.cache(updated);
+
+    const container = await this.getContainer();
+    if (container) {
+      try {
+        await container.items.upsert(this.toDocument(updated));
+      } catch (error) {
+        console.warn('[UserService] Failed to update login timestamp in Cosmos DB.', error);
+      }
+    }
+
+    return updated;
+  }
+
+  private async ensureSeedUsers(): Promise<void> {
+    for (const seed of SEED_APP_OWNERS) {
+      await this.upsert({
+        email: seed.email,
+        displayName: seed.displayName,
+        role: seed.role,
+        authMethod: seed.authMethod,
+        enabled: seed.enabled
+      });
+    }
+  }
+
+  private cache(record: UserRecord): void {
+    this.users.set(record.id, record);
+    this.byEmail.set(record.email, record.id);
+  }
+
+  private toDocument(record: UserRecord): UserDocument {
+    return {
+      ...record,
+      type: USER_DOCUMENT_TYPE
+    };
+  }
+
+  private toUser(document: UserDocument): UserRecord {
+    const { type: _type, ...record } = document;
+    return {
+      ...record,
+      email: record.email.toLowerCase()
+    };
+  }
+
+  private sortByEmail(users: UserRecord[]): UserRecord[] {
+    return users.sort((a, b) => a.email.localeCompare(b.email));
+  }
+
+  private async getContainer(): Promise<Container | null> {
+    if (!environment.cosmosEndpoint || !environment.cosmosKey) {
+      return null;
+    }
+    if (!this.containerPromise) {
+      this.containerPromise = this.initializeContainer();
+    }
+    return this.containerPromise;
+  }
+
+  private async initializeContainer(): Promise<Container | null> {
+    try {
+      const client = new CosmosClient({
+        endpoint: environment.cosmosEndpoint,
+        key: environment.cosmosKey
+      });
+      const { database } = await client.databases.createIfNotExists({
+        id: environment.cosmosDatabase
+      });
+      const { container } = await database.containers.createIfNotExists({
+        id: environment.cosmosUsersContainer,
+        partitionKey: {
+          paths: ['/id']
+        }
+      });
+      return container;
+    } catch (error) {
+      console.warn('[UserService] Cosmos DB unavailable, using in-memory user store.', error);
+      return null;
+    }
   }
 }
 

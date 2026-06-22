@@ -96,7 +96,7 @@ export class AuthService {
       const silentResult = await this.msal.instance.acquireTokenSilent(silentRequest);
       return await this.completeEntraSignIn(silentResult);
     } catch (error) {
-      if (!(error instanceof InteractionRequiredAuthError)) {
+      if (!this.isInteractionRequired(error)) {
         throw error;
       }
     }
@@ -110,7 +110,7 @@ export class AuthService {
         const ssoResult = await this.msal.instance.ssoSilent(ssoRequest);
         return await this.completeEntraSignIn(ssoResult);
       } catch (error) {
-        if (!(error instanceof InteractionRequiredAuthError)) {
+        if (!this.isInteractionRequired(error)) {
           throw error;
         }
       }
@@ -234,5 +234,20 @@ export class AuthService {
     }
 
     return this.msal.instance.getActiveAccount() ?? accounts[0];
+  }
+
+  private isInteractionRequired(error: unknown): boolean {
+    if (error instanceof InteractionRequiredAuthError) {
+      return true;
+    }
+
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const code =
+      (error as { errorCode?: string }).errorCode ??
+      (error as { code?: string }).code;
+    return code === 'no_account_error' || code === 'interaction_required' || code === 'login_required';
   }
 }

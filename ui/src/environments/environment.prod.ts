@@ -8,8 +8,8 @@ export const environment = {
     redirectUri: 'https://ui-fabriciq-b3.azurewebsites.net',
     postLogoutRedirectUri: 'https://ui-fabriciq-b3.azurewebsites.net',
     scopes: ['openid', 'profile', 'email'],
-    allowedDomain: '@MngEnvMCAP829495.onmicrosoft.com',
-    internalDomains: ['MngEnvMCAP829495.onmicrosoft.com', 'microsoft.com']
+    allowedDomain: '@mngenvmcap829495.onmicrosoft.com',
+    internalDomains: ['mngenvmcap829495.onmicrosoft.com', 'microsoft.com']
   },
   branding: {
     systemName: 'Fabric IQ Ontology AI Generator',
