@@ -15,6 +15,17 @@ const ROLE_RANK: Record<UserRole, number> = {
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
+
+  // Allow OAuth callback responses (code/id_token/error in URL hash) to flow through
+  // so AuthService/MSAL can complete redirect processing instead of bouncing to /login.
+  if (typeof window !== 'undefined') {
+    const hash = window.location.hash ?? '';
+    const hasAuthCallbackHash = /(^|[&#])(code|id_token|access_token|error)=/.test(hash);
+    if (hasAuthCallbackHash) {
+      return true;
+    }
+  }
+
   if (auth.isAuthenticated()) {
     return true;
   }
