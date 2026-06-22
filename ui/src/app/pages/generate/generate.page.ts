@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -12,7 +12,9 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronUp, chevronDown } from 'ionicons/icons';
+import { finalize } from 'rxjs';
 
+import { OntologyGraphComponent } from '../../components/ontology-graph/ontology-graph.component';
 import { ONTOLOGY_SAMPLE_PROMPTS, OntologySamplePrompt } from '../../config/ontology-prompts.config';
 import { Ontology } from '../../models/ontology.model';
 import { GenerateService } from '../../services/generate.service';
@@ -29,13 +31,15 @@ import { GenerateService } from '../../services/generate.service';
     IonButton,
     IonIcon,
     IonTextarea,
-    IonSpinner
+    IonSpinner,
+    OntologyGraphComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GeneratePage {
   private readonly generateService = inject(GenerateService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({ chevronUp, chevronDown });
@@ -44,6 +48,7 @@ export class GeneratePage {
   protected businessCase = '';
   protected promptSummary = '';
   protected generatedOntology?: Ontology;
+  protected selectedEntityId?: string;
   protected isGenerating = false;
   protected generationDurationMs?: number;
   protected samplePromptFeedback = '';
@@ -57,21 +62,39 @@ export class GeneratePage {
 
     const startedAt = performance.now();
     this.isGenerating = true;
+    this.generatedOntology = undefined;
+    this.promptSummary = '';
     this.generationDurationMs = undefined;
-    this.generateService.generateDraft({ businessCase: this.businessCase.trim() }).subscribe({
-      next: (response) => {
-        this.generatedOntology = response.ontology;
-        this.promptSummary = response.promptSummary;
-        this.generationDurationMs = Math.round(performance.now() - startedAt);
-        this.isGenerating = false;
-      },
-      error: (error: unknown) => {
-        this.generatedOntology = undefined;
-        this.generationDurationMs = Math.round(performance.now() - startedAt);
-        this.promptSummary = this.resolveGenerationError(error);
-        this.isGenerating = false;
-      }
-    });
+    this.selectedEntityId = undefined;
+
+    this.generateService
+      .generateDraft({ businessCase: this.businessCase.trim() })
+      .pipe(
+        finalize(() => {
+          this.isGenerating = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.generatedOntology = response.ontology;
+          this.promptSummary = response.promptSummary;
+          this.generationDurationMs = Math.round(performance.now() - startedAt);
+          this.selectedEntityId = this.generatedOntology.entities[0]?.id;
+          this.cdr.markForCheck();
+        },
+        error: (error: unknown) => {
+          this.generatedOntology = undefined;
+          this.generationDurationMs = Math.round(performance.now() - startedAt);
+          this.promptSummary = this.resolveGenerationError(error);
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  protected onSelectedEntityIdChange(entityId: string): void {
+    this.selectedEntityId = entityId;
+    this.cdr.markForCheck();
   }
 
   private resolveGenerationError(error: unknown): string {

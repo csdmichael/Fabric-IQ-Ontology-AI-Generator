@@ -73,6 +73,12 @@
       @if (generationDurationMs !== undefined) {
         <p class="latency">Response time: {{ generationDurationMs }} ms</p>
       }
+
+      <app-ontology-graph
+        [ontology]="generatedOntology"
+        [selectedEntityId]="selectedEntityId"
+        (selectedEntityIdChange)="onSelectedEntityIdChange($event)"
+      ></app-ontology-graph>
     </section>
   }
 </ion-content>
