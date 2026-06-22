@@ -1,19 +1,113 @@
-<ion-content fullscreen="true">
+<ion-content fullscreen="true" class="home-page">
+  <!-- Hero Section -->
   <section class="page-title-section">
     <ion-chip color="primary">Fabric IQ</ion-chip>
-    <h1>Turn plain English into ontology drafts, then let IT bind and publish to Fabric.</h1>
+    <h1>Agentic Ontology Workflow</h1>
     <p class="hero-subtitle">
-      Business users shape entities and relationships first. IT users then add Lakehouse views, bindings, and deployment artifacts.
+      AI-powered ontologies. Business users author, IT binds to Fabric, Admins deploy.
     </p>
-    <div class="page-title-actions">
-      <ion-button routerLink="/generate">Start with business prompt</ion-button>
-      <ion-button fill="outline" routerLink="/ontologies">Open ontology studio</ion-button>
+  </section>
+
+  <!-- Workflow Diagram Section -->
+  <section class="workflow-section">
+    <h2>How it works</h2>
+    <div class="workflow-diagram">
+      <!-- Phase 1: Author -->
+      <div class="workflow-phase">
+        <div class="phase-number">1</div>
+        <div class="phase-content">
+          <div class="phase-icon business-user-icon">
+            <ion-icon name="sparkles-outline"></ion-icon>
+          </div>
+          <h3>Author</h3>
+          <p class="role-name">Business User</p>
+          <p class="phase-description">Describe your domain in plain English</p>
+          <div class="phase-highlights">
+            <span>• Generate entities</span>
+            <span>• Define relationships</span>
+            <span>• Review & save draft</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="workflow-arrow">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
+
+      <!-- Phase 2: Bind -->
+      <div class="workflow-phase">
+        <div class="phase-number">2</div>
+        <div class="phase-content">
+          <div class="phase-icon it-user-icon">
+            <ion-icon name="cube-outline"></ion-icon>
+          </div>
+          <h3>Bind</h3>
+          <p class="role-name">IT User</p>
+          <p class="phase-description">Map to Fabric Lakehouse</p>
+          <div class="phase-highlights">
+            <span>• Connect to Lakehouse</span>
+            <span>• Bind to tables/views</span>
+            <span>• Validate schema</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="workflow-arrow">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
+
+      <!-- Phase 3: Deploy -->
+      <div class="workflow-phase">
+        <div class="phase-number">3</div>
+        <div class="phase-content">
+          <div class="phase-icon admin-icon">
+            <ion-icon name="rocket-outline"></ion-icon>
+          </div>
+          <h3>Deploy</h3>
+          <p class="role-name">Admin</p>
+          <p class="phase-description">Approve & publish to Fabric</p>
+          <div class="phase-highlights">
+            <span>• Review bindings</span>
+            <span>• Approve ontology</span>
+            <span>• Deploy to Fabric IQ</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- Role-Based Quick Actions -->
+  <section class="page-section role-actions-section">
+    <h2>Get Started</h2>
+    <div class="role-actions-grid">
+      @for (action of roleActions; track action.title) {
+        @if (auth$.hasPermission(action.permission)) {
+          <ion-card class="role-action-card" [ngClass]="'role-' + action.color">
+            <ion-card-header>
+              <div class="role-icon-badge" [ngClass]="'badge-' + action.color">
+                <ion-icon [name]="action.icon"></ion-icon>
+              </div>
+              <ion-card-title>{{ action.title }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="role-description">{{ action.description }}</p>
+              <ion-button [color]="action.color" routerLink="{{ action.link }}" expand="block" size="small">
+                {{ action.action }}
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Stats Section -->
   <section class="page-section card-grid">
+    <h2>Workspace Overview</h2>
     @for (card of summaryCards; track card.title) {
-      <ion-card>
+      <ion-card class="stat-card">
         <ion-card-header>
           <ion-card-title>{{ card.title }}</ion-card-title>
         </ion-card-header>
@@ -25,20 +119,86 @@
     }
   </section>
 
-  <section class="page-section">
+  <!-- Full Workflow Details -->
+  <section class="page-section workflow-details">
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Recommended workflow</ion-card-title>
+        <ion-card-title>Complete Workflow</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <ol>
-          <li>Business user prompts the ontology generator in plain English.</li>
-          <li>Business user reviews graph, entities, relationships, and properties, then saves draft.</li>
-          <li>Business user submits draft to IT for Lakehouse bindings.</li>
-          <li>IT configures Fabric connection, binds fields/views, and submits ontology package.</li>
-          <li>Admin deploys packaged ttl/json artifacts to Fabric.</li>
-        </ol>
+        <div class="workflow-timeline">
+          <div class="timeline-item">
+            <div class="timeline-marker business-user">
+              <ion-icon name="sparkles-outline"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <h3>Phase 1: Author</h3>
+              <p class="timeline-role">Business User Role</p>
+              <ol>
+                <li>Open <strong>Generate page</strong> and describe your domain in natural language</li>
+                <li>AI generates initial entities, properties, and relationships</li>
+                <li>Review and refine the ontology graph interactively</li>
+                <li>Save as draft ontology</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-marker it-user">
+              <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <h3>Phase 2: Bind</h3>
+              <p class="timeline-role">IT User Role</p>
+              <ol>
+                <li>Review business draft in <strong>Ontology Editor</strong></li>
+                <li>Configure Fabric workspace connection in <strong>IT Settings</strong></li>
+                <li>Select available lakehouses and map entities to Fabric tables/views</li>
+                <li>Validate schema mappings and submit for deployment</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-marker admin">
+              <ion-icon name="rocket-outline"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <h3>Phase 3: Deploy</h3>
+              <p class="timeline-role">Admin Role</p>
+              <ol>
+                <li>Review IT-bound ontology and validate all mappings</li>
+                <li>Approve ontology for production deployment</li>
+                <li>Deploy TTL + JSON artifacts to Fabric Lakehouse</li>
+                <li>Monitor deployment status and troubleshoot if needed</li>
+              </ol>
+            </div>
+          </div>
+        </div>
       </ion-card-content>
     </ion-card>
+  </section>
+
+  <!-- Quick Links -->
+  <section class="page-section quick-links">
+    <h2>Resources</h2>
+    <div class="links-grid">
+      <ion-button fill="outline" routerLink="/architecture">
+        <ion-icon slot="start" name="document-outline"></ion-icon>
+        View Architecture
+      </ion-button>
+      <ion-button fill="outline" routerLink="/settings">
+        <ion-icon slot="start" name="settings-outline"></ion-icon>
+        Configure Fabric Connection
+      </ion-button>
+      <ion-button fill="outline" routerLink="/ontologies">
+        <ion-icon slot="start" name="layers-outline"></ion-icon>
+        All Ontologies
+      </ion-button>
+      <ion-button fill="outline" href="https://github.com/csdmichael/Fabric-IQ-Ontology-AI-Generator" target="_blank">
+        <ion-icon slot="start" name="logo-github"></ion-icon>
+        GitHub Repository
+      </ion-button>
+    </div>
   </section>
 </ion-content>

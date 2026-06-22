@@ -1,5 +1,5 @@
 .page-title-section {
-  padding: 5rem 2rem 3rem;
+  padding: 3rem 2rem 2rem;
   margin-top: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -23,25 +23,425 @@
     opacity: 0.95;
     line-height: 1.6;
   }
-
-  .page-title-actions {
-    margin-top: 2rem;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
 }
 
 .page-section {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2.5rem 2rem;
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem;
+    color: #333;
+  }
 
   &.card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 2rem;
+
+    .stat-card {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      ion-card-header {
+        padding-bottom: 0.5rem;
+      }
+
+      ion-card-content {
+        h2 {
+          font-size: 2rem;
+          font-weight: 700;
+          margin: 0.5rem 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .muted {
+          font-size: 0.9rem;
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+}
+
+// Workflow Diagram Section
+.workflow-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  background: #f8f9fa;
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0 0 2rem;
+    text-align: center;
+    color: #333;
+  }
+
+  .workflow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .workflow-phase {
+    flex: 1;
+    min-width: 280px;
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-top: 3px solid #667eea;
+    position: relative;
+
+    &:nth-child(4) {
+      border-top-color: #764ba2;
+    }
+
+    &:nth-child(6) {
+      border-top-color: #20c997;
+    }
+
+    .phase-number {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .phase-content {
+      margin-top: 1rem;
+    }
+
+    .phase-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.8rem;
+
+      &.business-user-icon {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+      }
+
+      &.it-user-icon {
+        background: rgba(118, 75, 162, 0.1);
+        color: #764ba2;
+      }
+
+      &.admin-icon {
+        background: rgba(32, 201, 151, 0.1);
+        color: #20c997;
+      }
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0.5rem 0;
+      color: #333;
+    }
+
+    .role-name {
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 500;
+      margin: 0.25rem 0 0.75rem;
+    }
+
+    .phase-description {
+      font-size: 0.95rem;
+      color: #555;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .phase-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #666;
+      text-align: left;
+    }
+  }
+
+  .workflow-arrow {
+    color: #ccc;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    margin: 0 0.5rem;
+
+    ion-icon {
+      display: block;
+    }
+
+    @media (max-width: 1024px) {
+      transform: rotate(90deg);
+      margin: 1rem 0;
+    }
+  }
+}
+
+// Role-Based Quick Actions
+.role-actions-section {
+  background: white;
+  padding: 2.5rem 2rem;
+
+  h2 {
+    text-align: center;
+  }
+
+  .role-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .role-action-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    &.role-primary {
+      border-top: 4px solid #667eea;
+    }
+
+    &.role-secondary {
+      border-top: 4px solid #764ba2;
+    }
+
+    &.role-tertiary {
+      border-top: 4px solid #20c997;
+    }
+
+    ion-card-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      padding: 1.5rem;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+        border-radius: 50%;
+      }
+    }
+
+    .role-icon-badge {
+      width: 50px;
+      height: 50px;
+      margin: 0 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.6rem;
+      position: relative;
+      z-index: 1;
+
+      &.badge-primary {
+        background: rgba(102, 126, 234, 0.2);
+        color: #667eea;
+      }
+
+      &.badge-secondary {
+        background: rgba(118, 75, 162, 0.2);
+        color: #764ba2;
+      }
+
+      &.badge-tertiary {
+        background: rgba(32, 201, 151, 0.2);
+        color: #20c997;
+      }
+    }
+
+    ion-card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    ion-card-content {
+      padding: 1rem 1.5rem 1.5rem;
+
+      .role-description {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+
+      ion-button {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}
+
+// Timeline / Workflow Details
+.workflow-details {
+  background: #f8f9fa;
+
+  ion-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .workflow-timeline {
+    position: relative;
+    padding: 1rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #20c997 100%);
+    }
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .timeline-marker {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+    z-index: 2;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    &.business-user {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    &.it-user {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    &.admin {
+      background: linear-gradient(135deg, #20c997 0%, #12b886 100%);
+    }
+  }
+
+  .timeline-content {
+    padding-top: 0.5rem;
+    flex: 1;
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem;
+      color: #333;
+    }
+
+    .timeline-role {
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 500;
+      margin: 0 0 1rem;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: #555;
+
+      li {
+        margin-bottom: 0.75rem;
+        line-height: 1.6;
+
+        strong {
+          color: #333;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}
+
+// Quick Links
+.quick-links {
+  background: white;
+
+  h2 {
+    text-align: center;
+  }
+
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+
+    ion-button {
+      margin: 0;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .workflow-section {
+    .workflow-diagram {
+      flex-direction: column;
+    }
+
+    .workflow-arrow {
+      transform: rotate(90deg);
+      margin: 0.5rem 0;
+    }
   }
 }
 
@@ -53,20 +453,69 @@
       font-size: 1.8rem;
     }
 
-    .page-title-actions {
-      flex-direction: column;
-
-      ion-button {
-        width: 100%;
-      }
+    .hero-subtitle {
+      font-size: 1rem;
     }
   }
 
   .page-section {
     padding: 1.5rem;
 
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+
     &.card-grid {
       grid-template-columns: 1fr;
     }
   }
+
+  .workflow-section {
+    padding: 1.5rem;
+
+    h2 {
+      font-size: 1.4rem;
+    }
+
+    .workflow-phase {
+      min-width: 240px;
+      padding: 1.25rem;
+    }
+  }
+
+  .role-actions-section {
+    .role-actions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .workflow-details {
+    .timeline-item {
+      gap: 1.5rem;
+    }
+
+    .timeline-marker {
+      width: 50px;
+      height: 50px;
+      font-size: 1.3rem;
+    }
+
+    .timeline-content {
+      h3 {
+        font-size: 1.1rem;
+      }
+
+      ol {
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .quick-links {
+    .links-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 }
+
