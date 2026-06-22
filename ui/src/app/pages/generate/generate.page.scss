@@ -28,6 +28,66 @@
   margin: 0 auto;
   padding: 3rem 2rem;
 
+  .sample-prompts {
+    margin-bottom: 2rem;
+
+    .sample-prompts-header {
+      margin-bottom: 1rem;
+
+      h2 {
+        margin: 0;
+        font-size: 1.35rem;
+        color: #1f2937;
+      }
+
+      p {
+        margin: 0.5rem 0 0;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+    }
+
+    .sample-prompt-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    .sample-prompt-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #667eea;
+      border-radius: 10px;
+      padding: 1rem;
+
+      h3 {
+        margin: 0 0 0.5rem;
+        color: #1f2937;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0;
+        color: #4b5563;
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      .sample-actions {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+    }
+
+    .sample-feedback {
+      margin: 0.75rem 0 0;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+  }
+
   .prompt-input {
     margin-bottom: 2rem;
     font-size: 1rem;
@@ -136,6 +196,12 @@
     border-radius: 6px;
     border-left: 3px solid #667eea;
   }
+
+  .latency {
+    margin: 0.8rem 0 0;
+    font-size: 0.9rem;
+    color: #475569;
+  }
 }
 
 // Responsive design
@@ -154,6 +220,15 @@
 
   .prompt-section {
     padding: 2rem 1.5rem;
+
+    .sample-prompts {
+      .sample-prompt-card {
+        .sample-actions {
+          justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+      }
+    }
 
     .prompt-input {
       min-height: 150px;

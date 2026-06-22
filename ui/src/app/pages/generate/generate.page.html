@@ -5,6 +5,30 @@
   </section>
 
   <section class="prompt-section">
+    <div class="sample-prompts">
+      <div class="sample-prompts-header">
+        <h2>Sample Manufacturing Prompts</h2>
+        <p>Use these examples as-is or customize them before generating your ontology.</p>
+      </div>
+
+      <div class="sample-prompt-list">
+        @for (sample of samplePrompts; track sample.title) {
+          <article class="sample-prompt-card">
+            <h3>{{ sample.title }}</h3>
+            <p>{{ sample.text }}</p>
+            <div class="sample-actions">
+              <ion-button size="small" fill="clear" (click)="copySamplePrompt(sample.text)">Copy</ion-button>
+              <ion-button size="small" fill="outline" (click)="useSamplePrompt(sample.text)">Use in Text Area</ion-button>
+            </div>
+          </article>
+        }
+      </div>
+
+      @if (samplePromptFeedback) {
+        <p class="sample-feedback">{{ samplePromptFeedback }}</p>
+      }
+    </div>
+
     <ion-textarea
       auto-grow="true"
       fill="outline"
@@ -35,6 +59,9 @@
       </div>
       @if (promptSummary) {
         <p class="summary">{{ promptSummary }}</p>
+      }
+      @if (generationDurationMs !== undefined) {
+        <p class="latency">Response time: {{ generationDurationMs }} ms</p>
       }
     </section>
   }

@@ -65,7 +65,11 @@ export class OpenAiService {
     // Try to use AI to generate entities
     if (this.client && environment.azureOpenAiDeployment) {
       try {
-        const result = await this.generateEntitiesWithAI(businessCase);
+        const result = await this.withTimeout(
+          this.generateEntitiesWithAI(businessCase),
+          environment.openAiTimeoutMs,
+          `Azure OpenAI generation timed out after ${environment.openAiTimeoutMs} ms`
+        );
         entities = result.entities;
         promptSummary = result.promptSummary;
       } catch (error) {
@@ -97,6 +101,22 @@ export class OpenAiService {
       },
       promptSummary
     };
+  }
+
+  private async withTimeout<T>(operation: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+    let timeoutHandle: NodeJS.Timeout | undefined;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => reject(new Error(message)), timeoutMs);
+    });
+
+    try {
+      return await Promise.race([operation, timeoutPromise]);
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
   }
 
   private async generateEntitiesWithAI(

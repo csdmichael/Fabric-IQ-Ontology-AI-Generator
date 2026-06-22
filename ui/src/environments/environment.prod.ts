@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
   apiUrl: '',
+  generateTimeoutMs: 60000,
   auth: {
     tenantId: 'b158173c-91f6-4f99-b5e9-aa9bcb463863',
     clientId: '',

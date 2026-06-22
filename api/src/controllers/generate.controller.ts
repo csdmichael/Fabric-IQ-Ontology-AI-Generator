@@ -14,6 +14,7 @@ const openAiService = new OpenAiService();
 
 export class GenerateController {
   async createDraft(request: Request<unknown, unknown, GenerateRequestBody>, response: Response): Promise<void> {
+    const startedAt = Date.now();
     const businessCase = request.body.businessCase?.trim();
 
     if (!businessCase) {
@@ -23,9 +24,17 @@ export class GenerateController {
 
     // Fast path: generate ontology immediately and return to user
     const result = await openAiService.generateOntologyDraft(businessCase);
+    const elapsedMs = Date.now() - startedAt;
 
     // Return result immediately (do not wait for saves)
+    response.setHeader('x-generate-elapsed-ms', String(elapsedMs));
     response.status(200).json(result);
+
+    console.info('Generate ontology completed', {
+      elapsedMs,
+      promptLength: businessCase.length,
+      entityCount: result.ontology.entities.length
+    });
 
     // Background operations: save prompt and persist to Cosmos (fire-and-forget)
     // These operations don't block the user experience
