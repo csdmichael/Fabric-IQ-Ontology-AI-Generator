@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -16,11 +17,13 @@ import {
   IonNote,
   IonSelect,
   IonSelectOption,
+  IonSegment,
+  IonSegmentButton,
   IonText,
   IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, cloudUploadOutline, documentTextOutline, refreshOutline, rocketOutline, trashOutline } from 'ionicons/icons';
+import { addOutline, chevronBack, chevronForward, cloudUploadOutline, documentTextOutline, refreshOutline, rocketOutline, settingsOutline, trashOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 
 import { AgentChatComponent } from '../../components/agent-chat/agent-chat.component';
 import { EntityListComponent } from '../../components/entity-list/entity-list.component';
@@ -35,7 +38,9 @@ import { WorkflowService } from '../../services/workflow.service';
   selector: 'app-ontology-editor-page',
   standalone: true,
   templateUrl: './ontology-editor.page.html',
+  styleUrls: ['./ontology-editor.page.scss'],
   imports: [
+    CommonModule,
     FormsModule,
     IonContent,
     IonCard,
@@ -53,6 +58,8 @@ import { WorkflowService } from '../../services/workflow.service';
     IonIcon,
     IonText,
     IonNote,
+    IonSegment,
+    IonSegmentButton,
     EntityListComponent,
     OntologyGraphComponent,
     AgentChatComponent
@@ -70,12 +77,22 @@ export class OntologyEditorPage implements OnInit {
   protected statusMessage = 'Draft ontology with business entities first. Fabric bindings are added later by IT.';
   protected readonly selectedEntityId = signal<string | undefined>(undefined);
   protected readonly busy = signal(false);
+  protected readonly guidedMode = signal(true);
+  protected readonly currentStep = signal(1);
+  protected readonly steps = [
+    { id: 1, label: 'Metadata', title: 'Business Basics' },
+    { id: 2, label: 'Entities', title: 'Define Entities' },
+    { id: 3, label: 'Relationships', title: 'Connect Entities' },
+    { id: 4, label: 'Review', title: 'Review & Save' }
+  ];
   protected readonly canGenerator = computed(() => this.auth.hasPermission('agent:ontology-generator'));
   protected readonly canBinder = computed(() => this.auth.hasPermission('agent:ontology-data-binder'));
   protected readonly canSubmitBinding = computed(() => this.auth.hasPermission('ontology:submit-for-binding'));
   protected readonly canSubmitDeployment = computed(() => this.auth.hasPermission('ontology:submit-for-deployment'));
   protected readonly canDeploy = computed(() => this.auth.hasPermission('ontology:deploy-to-fabric'));
   protected readonly isItUser = computed(() => this.auth.hasPermission('ontology:bind-data'));
+  protected readonly isBusinessUser = computed(() => !this.isItUser());
+  protected readonly canAdvanceStep = computed(() => this.validateStep(this.currentStep()));
 
   protected relationshipDraft: Pick<OntologyRelationship, 'name' | 'fromEntityId' | 'toEntityId' | 'cardinality' | 'description'> = {
     name: '',
@@ -101,7 +118,7 @@ export class OntologyEditorPage implements OnInit {
   }));
 
   constructor() {
-    addIcons({ addOutline, cloudUploadOutline, rocketOutline, documentTextOutline, refreshOutline, trashOutline });
+    addIcons({settingsOutline,addOutline,trashOutline,cloudUploadOutline,documentTextOutline,chevronBackOutline,chevronForwardOutline,refreshOutline,rocketOutline,chevronBack,chevronForward});
   }
 
   ngOnInit(): void {
@@ -333,6 +350,39 @@ export class OntologyEditorPage implements OnInit {
 
   protected rePromptBinder(): void {
     this.statusMessage = 'Use Ontology Data Binder chat below to re-prompt and refine Lakehouse bindings.';
+  }
+
+  protected toggleGuidedMode(): void {
+    this.guidedMode.set(!this.guidedMode());
+  }
+
+  protected nextStep(): void {
+    if (this.currentStep() < 4) {
+      this.currentStep.set(this.currentStep() + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  protected previousStep(): void {
+    if (this.currentStep() > 1) {
+      this.currentStep.set(this.currentStep() - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  protected setStep(step: number): void {
+    this.currentStep.set(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected validateStep(step: number): boolean {
+    switch (step) {
+      case 1: return this.ontology.name?.trim().length > 0;
+      case 2: return this.ontology.entities.length > 0;
+      case 3: return true; // Relationships are optional
+      case 4: return true; // Review is always available
+      default: return false;
+    }
   }
 
   private ensureEditorSelections(): void {

@@ -1,245 +1,480 @@
-<ion-content fullscreen="true">
-  <section class="page-section">
-    <h1>Ontology studio</h1>
-    <p class="muted">{{ statusMessage }}</p>
-    <ion-note>Status: {{ ontology.status }} · {{ ontology.bindings?.length ?? 0 }} bindings</ion-note>
-  </section>
+<ion-content fullscreen="true" class="ontology-editor" [class.guided-layout]="guidedMode()" [class.advanced-layout]="!guidedMode()">
+  <!-- GUIDED MODE -->
+  @if (guidedMode()) {
+    <!-- Step Indicator -->
+    <section class="step-indicator">
+      @for (step of steps; track step.id) {
+        <button
+          [ngClass]="{ 'step': true, 'active': currentStep() === step.id, 'completed': currentStep() > step.id, 'disabled': !validateStep(step.id) }"
+          (click)="validateStep(step.id) && setStep(step.id)"
+          [disabled]="!validateStep(step.id)"
+          type="button"
+        >
+          <div class="step-number">{{ step.id }}</div>
+          <div class="step-label">{{ step.label }}</div>
+        </button>
+      }
 
-  <section class="page-section editor-grid">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Business draft metadata</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item>
-          <ion-label position="stacked">Ontology title</ion-label>
-          <ion-input [(ngModel)]="ontology.name"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Description</ion-label>
-          <ion-textarea autoGrow="true" [(ngModel)]="ontology.description"></ion-textarea>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Business prompt (plain English)</ion-label>
-          <ion-textarea autoGrow="true" [(ngModel)]="ontology.businessCase"></ion-textarea>
-        </ion-item>
-        <ion-button expand="block" (click)="saveOntology()" [disabled]="busy()">Save draft</ion-button>
-        <ion-button expand="block" fill="outline" (click)="exportToWord()" [disabled]="busy() || !ontology.entities.length">
-          <ion-icon slot="start" name="document-text-outline"></ion-icon>
-          Export to Word
-        </ion-button>
-        <ion-button expand="block" fill="clear" (click)="rePromptGenerator()">
-          <ion-icon slot="start" name="refresh-outline"></ion-icon>
-          Re-prompt business agent
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
+      <a class="advanced-link" (click)="toggleGuidedMode()">
+        <ion-icon name="settings-outline"></ion-icon>
+        Advanced
+      </a>
+    </section>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Workflow actions</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        @if (canSubmitBinding()) {
-          <ion-button expand="block" color="secondary" (click)="submitForBinding()" [disabled]="busy() || !ontology.id">
-            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
-            Submit draft to IT team
-          </ion-button>
-        }
-        @if (canSubmitDeployment()) {
-          <ion-button expand="block" color="tertiary" (click)="submitForDeployment()" [disabled]="busy() || !ontology.id">
-            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
-            Submit bound ontology package
-          </ion-button>
-        }
-        @if (canDeploy()) {
-          <ion-button expand="block" color="success" (click)="deployToFabric()" [disabled]="busy() || !ontology.id">
-            <ion-icon slot="start" name="rocket-outline"></ion-icon>
-            Deploy packaged ontology to Fabric
-          </ion-button>
-        }
+    <!-- Step Content -->
+    <section class="step-content">
+      <!-- Step 1: Metadata -->
+      @if (currentStep() === 1) {
+        <h2 class="step-title">{{ steps[0].title }}</h2>
+        <p class="step-description">Give your ontology a clear business name and describe it in plain English.</p>
 
-        @if (ontology.artifactFiles?.length) {
-          <h3>Generated artifacts in blob</h3>
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Ontology Title</ion-label>
+              <ion-input [(ngModel)]="ontology.name" placeholder="e.g., Retail Customer Orders"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Description</ion-label>
+              <ion-textarea autoGrow="true" [(ngModel)]="ontology.description" placeholder="Describe what this ontology captures..."></ion-textarea>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Business Prompt (Optional)</ion-label>
+              <ion-textarea autoGrow="true" [(ngModel)]="ontology.businessCase" placeholder="The business context that generated this ontology..."></ion-textarea>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Step 2: Entities -->
+      @if (currentStep() === 2) {
+        <h2 class="step-title">{{ steps[1].title }}</h2>
+        <p class="step-description">Define the business entities that make up your domain. Each entity represents a key concept.</p>
+
+        <app-entity-list
+          [entities]="ontology.entities"
+          [selectedEntityId]="selectedEntityId()"
+          (selectedEntityIdChange)="updateSelectedEntity($event)"
+          (entitiesChange)="updateEntities($event)"
+        ></app-entity-list>
+      }
+
+      <!-- Step 3: Relationships -->
+      @if (currentStep() === 3) {
+        <h2 class="step-title">{{ steps[2].title }}</h2>
+        <p class="step-description">Define how your entities connect to each other. Relationships show how data flows between entities.</p>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Add Relationship</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (ontology.entities.length < 2) {
+              <ion-note color="warning">You need at least 2 entities to create relationships. Go back to Step 2 to add more entities.</ion-note>
+            } @else {
+              <ion-item>
+                <ion-label position="stacked">Relationship Name</ion-label>
+                <ion-input [(ngModel)]="relationshipDraft.name" placeholder="e.g., places"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">From Entity</ion-label>
+                <ion-select interface="popover" [(ngModel)]="relationshipDraft.fromEntityId">
+                  @for (entity of ontology.entities; track entity.id) {
+                    <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">To Entity</ion-label>
+                <ion-select interface="popover" [(ngModel)]="relationshipDraft.toEntityId">
+                  @for (entity of ontology.entities; track entity.id) {
+                    <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Cardinality</ion-label>
+                <ion-select interface="popover" [(ngModel)]="relationshipDraft.cardinality">
+                  <ion-select-option value="one-to-one">one-to-one</ion-select-option>
+                  <ion-select-option value="one-to-many">one-to-many</ion-select-option>
+                  <ion-select-option value="many-to-many">many-to-many</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Description (Optional)</ion-label>
+                <ion-input [(ngModel)]="relationshipDraft.description" placeholder="What does this relationship mean?"></ion-input>
+              </ion-item>
+              <ion-button expand="block" (click)="addRelationship()">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Add Relationship
+              </ion-button>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        @if ((ontology.relationships ?? []).length > 0) {
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Your Relationships</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="none">
+                @for (relationship of ontology.relationships; track relationship.id) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>{{ relationship.name }}</h3>
+                      <p>{{ getEntityName(relationship.fromEntityId) }} → {{ getEntityName(relationship.toEntityId) }} · {{ relationship.cardinality }}</p>
+                    </ion-label>
+                    <ion-button fill="clear" color="danger" (click)="removeRelationship(relationship.id)">
+                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        }
+      }
+
+      <!-- Step 4: Review -->
+      @if (currentStep() === 4) {
+        <h2 class="step-title">{{ steps[3].title }}</h2>
+        <p class="step-description">Review your ontology and save it. You can edit it anytime.</p>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Ontology Summary</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div style="margin-bottom: 1rem;">
+              <strong>Title:</strong> {{ ontology.name }}
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <strong>Description:</strong> {{ ontology.description }}
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <strong>Entities:</strong> {{ ontology.entities.length }}
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <strong>Relationships:</strong> {{ (ontology.relationships ?? []).length }}
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <strong>Status:</strong> <ion-note>{{ ontology.status }}</ion-note>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <app-ontology-graph
+          [ontology]="ontology"
+          [selectedEntityId]="selectedEntityId()"
+          (selectedEntityIdChange)="updateSelectedEntity($event)"
+        ></app-ontology-graph>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Actions</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-button expand="block" color="primary" (click)="saveOntology()" [disabled]="busy()">
+              <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+              Save Ontology
+            </ion-button>
+            <ion-button expand="block" fill="outline" (click)="exportToWord()" [disabled]="busy() || !ontology.entities.length">
+              <ion-icon slot="start" name="document-text-outline"></ion-icon>
+              Export to Word
+            </ion-button>
+
+            @if (canSubmitBinding() && !isBusinessUser()) {
+              <ion-button expand="block" color="secondary" (click)="submitForBinding()" [disabled]="busy() || !ontology.id">
+                <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+                Submit to IT Team
+              </ion-button>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        @if (canGenerator()) {
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Refine with AI</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <app-agent-chat
+                agentKey="ontology-generator"
+                title="Business Foundry Agent"
+                subtitle="Ask questions or refine your entities and relationships."
+                [context]="agentContext()"
+              ></app-agent-chat>
+            </ion-card-content>
+          </ion-card>
+        }
+      }
+    </section>
+
+    <!-- Navigation Buttons -->
+    <section class="step-navigation">
+      <ion-button fill="outline" (click)="previousStep()" [disabled]="currentStep() === 1">
+        <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+        Previous
+      </ion-button>
+      <div class="nav-spacer"></div>
+      <ion-button fill="solid" (click)="nextStep()" [disabled]="currentStep() === 4 || !canAdvanceStep()">
+        Next
+        <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </section>
+  } @else {
+    <section style="padding: 1rem;">
+      <a class="advanced-link" (click)="toggleGuidedMode()" style="display: inline-flex;">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+        Back to Guided Mode
+      </a>
+    </section>
+
+    <section class="page-section">
+      <h1>Ontology Studio (Advanced)</h1>
+      <p class="muted">{{ statusMessage }}</p>
+      <ion-note>Status: {{ ontology.status }} · {{ ontology.bindings?.length ?? 0 }} bindings</ion-note>
+    </section>
+
+    <section class="page-section editor-grid">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Business draft metadata</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item>
+            <ion-label position="stacked">Ontology title</ion-label>
+            <ion-input [(ngModel)]="ontology.name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Description</ion-label>
+            <ion-textarea autoGrow="true" [(ngModel)]="ontology.description"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Business prompt (plain English)</ion-label>
+            <ion-textarea autoGrow="true" [(ngModel)]="ontology.businessCase"></ion-textarea>
+          </ion-item>
+          <ion-button expand="block" (click)="saveOntology()" [disabled]="busy()">Save draft</ion-button>
+          <ion-button expand="block" fill="outline" (click)="exportToWord()" [disabled]="busy() || !ontology.entities.length">
+            <ion-icon slot="start" name="document-text-outline"></ion-icon>
+            Export to Word
+          </ion-button>
+          <ion-button expand="block" fill="clear" (click)="rePromptGenerator()">
+            <ion-icon slot="start" name="refresh-outline"></ion-icon>
+            Re-prompt business agent
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Workflow actions</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          @if (canSubmitBinding()) {
+            <ion-button expand="block" color="secondary" (click)="submitForBinding()" [disabled]="busy() || !ontology.id">
+              <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+              Submit draft to IT team
+            </ion-button>
+          }
+          @if (canSubmitDeployment()) {
+            <ion-button expand="block" color="tertiary" (click)="submitForDeployment()" [disabled]="busy() || !ontology.id">
+              <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+              Submit bound ontology package
+            </ion-button>
+          }
+          @if (canDeploy()) {
+            <ion-button expand="block" color="success" (click)="deployToFabric()" [disabled]="busy() || !ontology.id">
+              <ion-icon slot="start" name="rocket-outline"></ion-icon>
+              Deploy packaged ontology to Fabric
+            </ion-button>
+          }
+
+          @if (ontology.artifactFiles?.length) {
+            <h3>Generated artifacts in blob</h3>
+            <ion-list lines="none">
+              @for (file of ontology.artifactFiles; track file.blobName) {
+                <ion-item>
+                  <ion-label>
+                    <h3>{{ file.type }}</h3>
+                    <p>{{ file.blobName }}</p>
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          }
+        </ion-card-content>
+      </ion-card>
+
+      <app-ontology-graph
+        [ontology]="ontology"
+        [selectedEntityId]="selectedEntityId()"
+        (selectedEntityIdChange)="updateSelectedEntity($event)"
+      ></app-ontology-graph>
+    </section>
+
+    <section class="page-section">
+      <app-entity-list
+        [entities]="ontology.entities"
+        [selectedEntityId]="selectedEntityId()"
+        (selectedEntityIdChange)="updateSelectedEntity($event)"
+        (entitiesChange)="updateEntities($event)"
+      ></app-entity-list>
+    </section>
+
+    <section class="page-section editor-grid">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Relationships</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="form-grid">
+            <ion-item>
+              <ion-label position="stacked">Relationship name</ion-label>
+              <ion-input [(ngModel)]="relationshipDraft.name"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">From entity</ion-label>
+              <ion-select interface="popover" [(ngModel)]="relationshipDraft.fromEntityId">
+                @for (entity of ontology.entities; track entity.id) {
+                  <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">To entity</ion-label>
+              <ion-select interface="popover" [(ngModel)]="relationshipDraft.toEntityId">
+                @for (entity of ontology.entities; track entity.id) {
+                  <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Cardinality</ion-label>
+              <ion-select interface="popover" [(ngModel)]="relationshipDraft.cardinality">
+                <ion-select-option value="one-to-one">one-to-one</ion-select-option>
+                <ion-select-option value="one-to-many">one-to-many</ion-select-option>
+                <ion-select-option value="many-to-many">many-to-many</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+          <ion-item>
+            <ion-label position="stacked">Description</ion-label>
+            <ion-input [(ngModel)]="relationshipDraft.description"></ion-input>
+          </ion-item>
+          <ion-button expand="block" fill="outline" (click)="addRelationship()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Add relationship
+          </ion-button>
+
           <ion-list lines="none">
-            @for (file of ontology.artifactFiles; track file.blobName) {
+            @for (relationship of ontology.relationships ?? []; track relationship.id) {
               <ion-item>
                 <ion-label>
-                  <h3>{{ file.type }}</h3>
-                  <p>{{ file.blobName }}</p>
+                  <h3>{{ relationship.name }}</h3>
+                  <p>{{ getEntityName(relationship.fromEntityId) }} -> {{ getEntityName(relationship.toEntityId) }} · {{ relationship.cardinality }}</p>
                 </ion-label>
+                <ion-button fill="clear" color="danger" (click)="removeRelationship(relationship.id)">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
               </ion-item>
             }
           </ion-list>
-        }
-      </ion-card-content>
-    </ion-card>
+        </ion-card-content>
+      </ion-card>
 
-    <app-ontology-graph
-      [ontology]="ontology"
-      [selectedEntityId]="selectedEntityId()"
-      (selectedEntityIdChange)="updateSelectedEntity($event)"
-    ></app-ontology-graph>
-  </section>
-
-  <section class="page-section">
-    <app-entity-list
-      [entities]="ontology.entities"
-      [selectedEntityId]="selectedEntityId()"
-      (selectedEntityIdChange)="updateSelectedEntity($event)"
-      (entitiesChange)="updateEntities($event)"
-    ></app-entity-list>
-  </section>
-
-  <section class="page-section editor-grid">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Relationships</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="form-grid">
-          <ion-item>
-            <ion-label position="stacked">Relationship name</ion-label>
-            <ion-input [(ngModel)]="relationshipDraft.name"></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">From entity</ion-label>
-            <ion-select interface="popover" [(ngModel)]="relationshipDraft.fromEntityId">
-              @for (entity of ontology.entities; track entity.id) {
-                <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
-              }
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">To entity</ion-label>
-            <ion-select interface="popover" [(ngModel)]="relationshipDraft.toEntityId">
-              @for (entity of ontology.entities; track entity.id) {
-                <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
-              }
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Cardinality</ion-label>
-            <ion-select interface="popover" [(ngModel)]="relationshipDraft.cardinality">
-              <ion-select-option value="one-to-one">one-to-one</ion-select-option>
-              <ion-select-option value="one-to-many">one-to-many</ion-select-option>
-              <ion-select-option value="many-to-many">many-to-many</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
-        <ion-item>
-          <ion-label position="stacked">Description</ion-label>
-          <ion-input [(ngModel)]="relationshipDraft.description"></ion-input>
-        </ion-item>
-        <ion-button expand="block" fill="outline" (click)="addRelationship()">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          Add relationship
-        </ion-button>
-
-        <ion-list lines="none">
-          @for (relationship of ontology.relationships ?? []; track relationship.id) {
-            <ion-item>
-              <ion-label>
-                <h3>{{ relationship.name }}</h3>
-                <p>{{ getEntityName(relationship.fromEntityId) }} -> {{ getEntityName(relationship.toEntityId) }} · {{ relationship.cardinality }}</p>
-              </ion-label>
-              <ion-button fill="clear" color="danger" (click)="removeRelationship(relationship.id)">
-                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      @if (isItUser()) {
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>IT bindings to Fabric Lakehouse</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="muted">Business users can ignore this section. IT users can bind entities/properties to lakehouse tables and curated views.</p>
+            <div class="form-grid">
+              <ion-item>
+                <ion-label position="stacked">Entity</ion-label>
+                <ion-select interface="popover" [(ngModel)]="bindingDraft.entityId">
+                  @for (entity of ontology.entities; track entity.id) {
+                    <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Property (optional)</ion-label>
+                <ion-select interface="popover" [(ngModel)]="bindingDraft.propertyId">
+                  <ion-select-option value="">Entity-level</ion-select-option>
+                  @for (property of propertiesForEntity(bindingDraft.entityId); track property.id) {
+                    <ion-select-option [value]="property.id">{{ property.name }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Lakehouse table</ion-label>
+                <ion-input [(ngModel)]="bindingDraft.lakehouseTable" placeholder="sales.orders"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Lakehouse view</ion-label>
+                <ion-input [(ngModel)]="bindingDraft.lakehouseView" placeholder="vw_customer_profile"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Source field</ion-label>
+                <ion-input [(ngModel)]="bindingDraft.sourceField" placeholder="customer_id"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Notes</ion-label>
+                <ion-input [(ngModel)]="bindingDraft.notes"></ion-input>
+              </ion-item>
+            </div>
+            <div class="row-actions">
+              <ion-button expand="block" fill="outline" (click)="addBinding()" [disabled]="!isItUser()">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Add binding
               </ion-button>
-            </ion-item>
-          }
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>IT bindings to Fabric Lakehouse</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p class="muted">Business users can ignore this section. IT users can bind entities/properties to lakehouse tables and curated views.</p>
-        <div class="form-grid">
-          <ion-item>
-            <ion-label position="stacked">Entity</ion-label>
-            <ion-select interface="popover" [(ngModel)]="bindingDraft.entityId">
-              @for (entity of ontology.entities; track entity.id) {
-                <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
-              }
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Property (optional)</ion-label>
-            <ion-select interface="popover" [(ngModel)]="bindingDraft.propertyId">
-              <ion-select-option value="">Entity-level</ion-select-option>
-              @for (property of propertiesForEntity(bindingDraft.entityId); track property.id) {
-                <ion-select-option [value]="property.id">{{ property.name }}</ion-select-option>
-              }
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Lakehouse table</ion-label>
-            <ion-input [(ngModel)]="bindingDraft.lakehouseTable" placeholder="sales.orders"></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Lakehouse view</ion-label>
-            <ion-input [(ngModel)]="bindingDraft.lakehouseView" placeholder="vw_customer_profile"></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Source field</ion-label>
-            <ion-input [(ngModel)]="bindingDraft.sourceField" placeholder="customer_id"></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Notes</ion-label>
-            <ion-input [(ngModel)]="bindingDraft.notes"></ion-input>
-          </ion-item>
-        </div>
-        <div class="row-actions">
-          <ion-button expand="block" fill="outline" (click)="addBinding()" [disabled]="!isItUser()">
-            <ion-icon slot="start" name="add-outline"></ion-icon>
-            Add binding
-          </ion-button>
-          <ion-button expand="block" fill="clear" (click)="rePromptBinder()" [disabled]="!canBinder()">
-            <ion-icon slot="start" name="refresh-outline"></ion-icon>
-            Re-prompt IT agent
-          </ion-button>
-        </div>
-
-        <ion-list lines="none">
-          @for (binding of ontology.bindings ?? []; track binding.id) {
-            <ion-item>
-              <ion-label>
-                <h3>{{ getEntityName(binding.entityId) }} · {{ getPropertyLabel(binding.entityId, binding.propertyId) }}</h3>
-                <p>{{ binding.lakehouseTable }}{{ binding.lakehouseView ? ' / ' + binding.lakehouseView : '' }} -> {{ binding.sourceField }}</p>
-              </ion-label>
-              <ion-button fill="clear" color="danger" (click)="removeBinding(binding.id)">
-                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              <ion-button expand="block" fill="clear" (click)="rePromptBinder()" [disabled]="!canBinder()">
+                <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                Re-prompt IT agent
               </ion-button>
-            </ion-item>
-          }
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-  </section>
+            </div>
 
-  @if (canGenerator()) {
-    <section class="page-section">
-      <app-agent-chat
-        agentKey="ontology-generator"
-        title="Ontology Generator"
-        subtitle="Refine entities, properties, and relationships with the business-language assistant."
-        [context]="agentContext()"
-      ></app-agent-chat>
+            <ion-list lines="none">
+              @for (binding of ontology.bindings ?? []; track binding.id) {
+                <ion-item>
+                  <ion-label>
+                    <h3>{{ getEntityName(binding.entityId) }} · {{ getPropertyLabel(binding.entityId, binding.propertyId) }}</h3>
+                    <p>{{ binding.lakehouseTable }}{{ binding.lakehouseView ? ' / ' + binding.lakehouseView : '' }} -> {{ binding.sourceField }}</p>
+                  </ion-label>
+                  <ion-button fill="clear" color="danger" (click)="removeBinding(binding.id)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
     </section>
-  }
 
-  @if (canBinder()) {
-    <section class="page-section">
-      <app-agent-chat
-        agentKey="ontology-data-binder"
-        title="Ontology Data Binder"
-        subtitle="Map ontology properties to Fabric Lakehouse tables, views, and columns."
-        [context]="agentContext()"
-      ></app-agent-chat>
-    </section>
+    @if (canGenerator()) {
+      <section class="page-section">
+        <app-agent-chat
+          agentKey="ontology-generator"
+          title="Ontology Generator"
+          subtitle="Refine entities, properties, and relationships with the business-language assistant."
+          [context]="agentContext()"
+        ></app-agent-chat>
+      </section>
+    }
+
+    @if (canBinder()) {
+      <section class="page-section">
+        <app-agent-chat
+          agentKey="ontology-data-binder"
+          title="Ontology Data Binder"
+          subtitle="Map ontology properties to Fabric Lakehouse tables, views, and columns."
+          [context]="agentContext()"
+        ></app-agent-chat>
+      </section>
+    }
   }
 </ion-content>

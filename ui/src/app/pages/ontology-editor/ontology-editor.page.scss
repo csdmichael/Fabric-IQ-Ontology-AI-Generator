@@ -1,0 +1,247 @@
+.ontology-editor {
+  --step-indicator-height: 80px;
+}
+
+// Step indicator
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f9fafb 100%);
+  border-bottom: 2px solid #e5e7eb;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 80px;
+    position: relative;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: #e5e7eb;
+      color: #6b7280;
+      transition: all 0.2s ease;
+    }
+
+    .step-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    // Active step
+    &.active {
+      .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .step-label {
+        color: #1f2937;
+        font-weight: 600;
+      }
+    }
+
+    // Completed step
+    &.completed {
+      .step-number {
+        background: #10b981;
+        color: white;
+      }
+
+      .step-label {
+        color: #059669;
+      }
+    }
+
+    // Disabled step
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:not(.disabled):hover:not(.active) {
+      .step-number {
+        background: #d1d5db;
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .step-label {
+      font-size: 0.65rem;
+    }
+
+    .step-number {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 0.8rem !important;
+    }
+  }
+}
+
+// Mode toggle
+.mode-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+
+  ion-button {
+    --padding-start: 0.75rem;
+    --padding-end: 0.75rem;
+  }
+}
+
+// Step content
+.step-content {
+  padding: 2rem 1rem;
+  min-height: 400px;
+  animation: fadeIn 0.3s ease-in-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .step-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+  }
+
+  .step-description {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  ion-card {
+    margin-bottom: 2rem;
+  }
+}
+
+// Navigation buttons
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  border-top: 2px solid #e5e7eb;
+
+  ion-button {
+    flex: 1;
+  }
+
+  .nav-spacer {
+    flex: 1;
+  }
+}
+
+// Advanced mode toggle
+.advanced-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #764ba2;
+  }
+
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+// Guided layout vs advanced
+.guided-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.advanced-layout {
+  .step-indicator,
+  .step-navigation {
+    display: none;
+  }
+
+  .step-content {
+    padding: 1rem;
+  }
+}
+
+// Entity/relationship cards in guided mode
+.entity-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #667eea;
+    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .entity-name {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .entity-props {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .step-content {
+    padding: 1.5rem 1rem;
+    min-height: auto;
+  }
+
+  .step-title {
+    font-size: 1.5rem;
+  }
+}
