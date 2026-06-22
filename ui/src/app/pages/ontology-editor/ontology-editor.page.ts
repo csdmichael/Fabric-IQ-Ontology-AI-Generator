@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonCard,
@@ -30,7 +30,7 @@ import { EntityListComponent } from '../../components/entity-list/entity-list.co
 import { OntologyGraphComponent } from '../../components/ontology-graph/ontology-graph.component';
 import { Ontology, OntologyBinding, OntologyEntity, OntologyRelationship } from '../../models/ontology.model';
 import { AuthService } from '../../services/auth.service';
-import { DatasourceService, DataSourceConnection } from '../../services/datasource.service';
+import { DatasourceService, DataSourceConnection, FabricConnectionSettings } from '../../services/datasource.service';
 import { OntologyExportService } from '../../services/ontology-export.service';
 import { OntologyService } from '../../services/ontology.service';
 import { WorkflowService } from '../../services/workflow.service';
@@ -63,7 +63,8 @@ import { WorkflowService } from '../../services/workflow.service';
     IonSegmentButton,
     EntityListComponent,
     OntologyGraphComponent,
-    AgentChatComponent
+    AgentChatComponent,
+    RouterLink
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -77,12 +78,22 @@ export class OntologyEditorPage implements OnInit {
 
   protected ontology: Ontology = this.createEmptyOntology();
   protected statusMessage = 'Draft ontology with business entities first. Fabric bindings are added later by IT.';
+  protected connectionMessage = 'Configure the active Fabric workspace before binding to a lakehouse.';
   protected readonly selectedEntityId = signal<string | undefined>(undefined);
   protected readonly busy = signal(false);
   protected readonly guidedMode = signal(true);
   protected readonly currentStep = signal(1);
   protected readonly availableDatasources = signal<DataSourceConnection[]>([]);
   protected readonly selectedDatasource = signal<string | undefined>(undefined);
+  protected connectionSettings: FabricConnectionSettings = {
+    workspaceId: '',
+    capacityId: '',
+    clientId: '',
+    clientSecret: '',
+    tenantId: '',
+    storageContainer: '',
+    storageConnectionString: ''
+  };
   protected readonly steps = [
     { id: 1, label: 'Metadata', title: 'Business Basics' },
     { id: 2, label: 'Entities', title: 'Define Entities' },
@@ -126,6 +137,15 @@ export class OntologyEditorPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.datasourceService.getSettings().subscribe({
+      next: (settings) => {
+        this.connectionSettings = settings;
+      },
+      error: () => {
+        this.connectionMessage = 'Using local defaults. Save configuration to persist the Fabric connection.';
+      }
+    });
+
     // Load available datasources for IT bindings
     this.datasourceService.listDataSources().subscribe({
       next: (datasources) => {
@@ -156,6 +176,43 @@ export class OntologyEditorPage implements OnInit {
       },
       error: () => {
         this.ontology = this.createEmptyOntology();
+      }
+    });
+  }
+
+  protected applyDatasourceSelection(datasourceId?: string): void {
+    this.selectedDatasource.set(datasourceId || undefined);
+
+    if (!datasourceId) {
+      return;
+    }
+
+    const datasource = this.availableDatasources().find((item) => item.id === datasourceId);
+    if (!datasource) {
+      return;
+    }
+
+    this.bindingDraft = {
+      ...this.bindingDraft,
+      lakehouseTable: datasource.type === 'view' ? this.bindingDraft.lakehouseTable : datasource.itemName,
+      lakehouseView: datasource.type === 'view' ? datasource.itemName : this.bindingDraft.lakehouseView,
+      sourceField: this.bindingDraft.sourceField || 'id'
+    };
+
+    this.statusMessage = `Selected ${datasource.name}. Review the lakehouse mapping before adding the binding.`;
+  }
+
+  protected saveConnectionSettings(): void {
+    this.busy.set(true);
+    this.datasourceService.saveSettings(this.connectionSettings).subscribe({
+      next: (settings) => {
+        this.connectionSettings = settings;
+        this.connectionMessage = 'Fabric connection saved for this workspace.';
+        this.busy.set(false);
+      },
+      error: () => {
+        this.connectionMessage = 'Connection saved locally. API unavailable.';
+        this.busy.set(false);
       }
     });
   }
@@ -342,6 +399,7 @@ export class OntologyEditorPage implements OnInit {
       sourceField: '',
       notes: ''
     };
+    this.selectedDatasource.set(undefined);
   }
 
   protected removeBinding(bindingId: string): void {

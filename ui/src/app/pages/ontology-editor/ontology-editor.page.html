@@ -387,78 +387,135 @@
       @if (isItUser()) {
         <ion-card>
           <ion-card-header>
-            <ion-card-title>IT bindings to Fabric Lakehouse</ion-card-title>
+            <ion-card-title>Fabric connection</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p class="muted">Business users can ignore this section. IT users can bind entities/properties to lakehouse tables and curated views.</p>
-            <div class="form-grid">
-              <ion-item>
-                <ion-label position="stacked">Available Datasource</ion-label>
-                <ion-select interface="popover" [ngModel]="selectedDatasource()" (ngModelChange)="selectedDatasource.set($event)">
-                  <ion-select-option value="">Select a datasource...</ion-select-option>
-                  @for (datasource of availableDatasources(); track datasource.id) {
-                    <ion-select-option [value]="datasource.id">{{ datasource.name }} ({{ datasource.type }})</ion-select-option>
-                  }
-                </ion-select>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Entity</ion-label>
-                <ion-select interface="popover" [(ngModel)]="bindingDraft.entityId">
-                  @for (entity of ontology.entities; track entity.id) {
-                    <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
-                  }
-                </ion-select>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Property (optional)</ion-label>
-                <ion-select interface="popover" [(ngModel)]="bindingDraft.propertyId">
-                  <ion-select-option value="">Entity-level</ion-select-option>
-                  @for (property of propertiesForEntity(bindingDraft.entityId); track property.id) {
-                    <ion-select-option [value]="property.id">{{ property.name }}</ion-select-option>
-                  }
-                </ion-select>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Lakehouse table</ion-label>
-                <ion-input [(ngModel)]="bindingDraft.lakehouseTable" placeholder="sales.orders"></ion-input>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Lakehouse view</ion-label>
-                <ion-input [(ngModel)]="bindingDraft.lakehouseView" placeholder="vw_customer_profile"></ion-input>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Source field</ion-label>
-                <ion-input [(ngModel)]="bindingDraft.sourceField" placeholder="customer_id"></ion-input>
-              </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Notes</ion-label>
-                <ion-input [(ngModel)]="bindingDraft.notes"></ion-input>
-              </ion-item>
-            </div>
-            <div class="row-actions">
-              <ion-button expand="block" fill="outline" (click)="addBinding()" [disabled]="!isItUser()">
-                <ion-icon slot="start" name="add-outline"></ion-icon>
-                Add binding
-              </ion-button>
-              <ion-button expand="block" fill="clear" (click)="rePromptBinder()" [disabled]="!canBinder()">
-                <ion-icon slot="start" name="refresh-outline"></ion-icon>
-                Re-prompt IT agent
+            <p class="muted">Configure the Fabric workspace, then bind ontology entities to an existing lakehouse or curated view.</p>
+
+            <div class="connection-banner">
+              <div>
+                <strong>{{ connectionMessage }}</strong>
+                <p>Workspace: {{ connectionSettings.workspaceId || 'Not configured' }} · Capacity: {{ connectionSettings.capacityId || 'Not configured' }}</p>
+              </div>
+              <ion-button fill="outline" routerLink="/settings">
+                <ion-icon slot="start" name="settings-outline"></ion-icon>
+                Open settings page
               </ion-button>
             </div>
 
-            <ion-list lines="none">
-              @for (binding of ontology.bindings ?? []; track binding.id) {
-                <ion-item>
-                  <ion-label>
-                    <h3>{{ getEntityName(binding.entityId) }} · {{ getPropertyLabel(binding.entityId, binding.propertyId) }}</h3>
-                    <p>{{ binding.lakehouseTable }}{{ binding.lakehouseView ? ' / ' + binding.lakehouseView : '' }} -> {{ binding.sourceField }}</p>
-                  </ion-label>
-                  <ion-button fill="clear" color="danger" (click)="removeBinding(binding.id)">
-                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            <div class="form-grid connection-grid">
+              <ion-item>
+                <ion-label position="stacked">Fabric workspace ID</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.workspaceId" placeholder="workspace-guid"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Fabric capacity ID</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.capacityId" placeholder="capacity-guid"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Client ID</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.clientId" placeholder="app-registration-guid"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Tenant ID</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.tenantId" placeholder="tenant-guid"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Blob storage container</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.storageContainer" placeholder="ontology-artifacts"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Storage connection string</ion-label>
+                <ion-input [(ngModel)]="connectionSettings.storageConnectionString" type="password"></ion-input>
+              </ion-item>
+            </div>
+
+            <ion-item>
+              <ion-label position="stacked">Client secret</ion-label>
+              <ion-input [(ngModel)]="connectionSettings.clientSecret" type="password"></ion-input>
+            </ion-item>
+
+            <ion-button expand="block" color="primary" (click)="saveConnectionSettings()" [disabled]="busy()">
+              <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+              Save Fabric connection
+            </ion-button>
+
+            <ion-card class="binding-card">
+              <ion-card-header>
+                <ion-card-title>IT bindings to Fabric Lakehouse</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p class="muted">Select an existing datasource to prefill lakehouse details, then bind entities and properties.</p>
+                <div class="form-grid">
+                  <ion-item>
+                    <ion-label position="stacked">Available Datasource</ion-label>
+                    <ion-select interface="popover" [ngModel]="selectedDatasource()" (ngModelChange)="applyDatasourceSelection($event)">
+                      <ion-select-option value="">Select a datasource...</ion-select-option>
+                      @for (datasource of availableDatasources(); track datasource.id) {
+                        <ion-select-option [value]="datasource.id">{{ datasource.name }} ({{ datasource.type }})</ion-select-option>
+                      }
+                    </ion-select>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Entity</ion-label>
+                    <ion-select interface="popover" [(ngModel)]="bindingDraft.entityId">
+                      @for (entity of ontology.entities; track entity.id) {
+                        <ion-select-option [value]="entity.id">{{ entity.name }}</ion-select-option>
+                      }
+                    </ion-select>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Property (optional)</ion-label>
+                    <ion-select interface="popover" [(ngModel)]="bindingDraft.propertyId">
+                      <ion-select-option value="">Entity-level</ion-select-option>
+                      @for (property of propertiesForEntity(bindingDraft.entityId); track property.id) {
+                        <ion-select-option [value]="property.id">{{ property.name }}</ion-select-option>
+                      }
+                    </ion-select>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Lakehouse table</ion-label>
+                    <ion-input [(ngModel)]="bindingDraft.lakehouseTable" placeholder="sales.orders"></ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Lakehouse view</ion-label>
+                    <ion-input [(ngModel)]="bindingDraft.lakehouseView" placeholder="vw_customer_profile"></ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Source field</ion-label>
+                    <ion-input [(ngModel)]="bindingDraft.sourceField" placeholder="customer_id"></ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Notes</ion-label>
+                    <ion-input [(ngModel)]="bindingDraft.notes"></ion-input>
+                  </ion-item>
+                </div>
+                <div class="row-actions">
+                  <ion-button expand="block" fill="outline" (click)="addBinding()" [disabled]="!isItUser()">
+                    <ion-icon slot="start" name="add-outline"></ion-icon>
+                    Add binding
                   </ion-button>
-                </ion-item>
-              }
-            </ion-list>
+                  <ion-button expand="block" fill="clear" (click)="rePromptBinder()" [disabled]="!canBinder()">
+                    <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                    Re-prompt IT agent
+                  </ion-button>
+                </div>
+
+                <ion-list lines="none">
+                  @for (binding of ontology.bindings ?? []; track binding.id) {
+                    <ion-item>
+                      <ion-label>
+                        <h3>{{ getEntityName(binding.entityId) }} · {{ getPropertyLabel(binding.entityId, binding.propertyId) }}</h3>
+                        <p>{{ binding.lakehouseTable }}{{ binding.lakehouseView ? ' / ' + binding.lakehouseView : '' }} -> {{ binding.sourceField }}</p>
+                      </ion-label>
+                      <ion-button fill="clear" color="danger" (click)="removeBinding(binding.id)">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </ion-item>
+                  }
+                </ion-list>
+              </ion-card-content>
+            </ion-card>
           </ion-card-content>
         </ion-card>
       }
