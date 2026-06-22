@@ -2,11 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
 import {
-  AccountInfo,
   AuthenticationResult,
-  InteractionRequiredAuthError,
-  RedirectRequest,
-  SilentRequest
+  RedirectRequest
 } from '@azure/msal-browser';
 import { firstValueFrom } from 'rxjs';
 
@@ -85,26 +82,6 @@ export class AuthService {
 
   async loginWithEntra(loginHint?: string): Promise<AuthSession | null> {
     const normalizedHint = loginHint?.trim().toLowerCase();
-    const account = this.findAccount(normalizedHint);
-
-    if (!account) {
-      await this.redirectToEntraLogin(normalizedHint);
-      return null;
-    }
-
-    try {
-      const silentRequest: SilentRequest = {
-        scopes: environment.auth.scopes,
-        account
-      };
-      const silentResult = await this.msal.instance.acquireTokenSilent(silentRequest);
-      return await this.completeEntraSignIn(silentResult);
-    } catch (error) {
-      if (!this.isInteractionRequired(error)) {
-        throw error;
-      }
-    }
-
     await this.redirectToEntraLogin(normalizedHint);
     return null;
   }
@@ -195,54 +172,6 @@ export class AuthService {
     );
     this.persist(session);
     return session;
-  }
-
-  private findAccount(loginHint?: string): AccountInfo | null {
-    const accounts = this.msal.instance.getAllAccounts();
-    if (accounts.length === 0) {
-      return null;
-    }
-
-    if (loginHint) {
-      const normalized = loginHint.toLowerCase();
-      const matched = accounts.find((candidate) => {
-        const username = candidate.username?.toLowerCase() ?? '';
-        const preferred =
-          (candidate.idTokenClaims?.['preferred_username'] as string | undefined)?.toLowerCase() ??
-          '';
-        return username === normalized || preferred === normalized;
-      });
-      if (matched) {
-        return matched;
-      }
-    }
-
-    return this.msal.instance.getActiveAccount() ?? accounts[0];
-  }
-
-  private isInteractionRequired(error: unknown): boolean {
-    if (error instanceof InteractionRequiredAuthError) {
-      return true;
-    }
-
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
-
-    const code =
-      (error as { errorCode?: string }).errorCode ??
-      (error as { code?: string }).code;
-    const message =
-      (error as { errorMessage?: string }).errorMessage ??
-      (error as { message?: string }).message ??
-      '';
-
-    return (
-      code === 'no_account_error' ||
-      code === 'interaction_required' ||
-      code === 'login_required' ||
-      message.includes('no_account_error')
-    );
   }
 
   private async redirectToEntraLogin(loginHint?: string): Promise<void> {
