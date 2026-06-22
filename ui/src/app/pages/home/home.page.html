@@ -165,20 +165,45 @@
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="page-section card-grid">
-    <h2>Workspace Overview</h2>
-    @for (card of summaryCards; track card.title) {
-      <ion-card class="stat-card">
-        <ion-card-header>
-          <ion-card-title>{{ card.title }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <h2>{{ card.value }}</h2>
-          <ion-text class="muted">{{ card.detail }}</ion-text>
-        </ion-card-content>
-      </ion-card>
-    }
+  <!-- KPI Section -->
+  <section class="page-section kpi-section">
+    <div class="kpi-header">
+      <div>
+        <h2>Live Workspace KPIs</h2>
+        <p>Metrics pulled from the current ontology catalog</p>
+      </div>
+      <ion-chip class="refresh-chip" [color]="hasLiveData() ? 'success' : 'medium'">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        {{ lastRefreshLabel() }}
+      </ion-chip>
+    </div>
+
+    <div class="kpi-grid">
+      @for (card of kpiCards(); track card.title) {
+        <ion-card class="kpi-card" [ngClass]="['accent-' + card.accent, 'tone-' + card.tone]">
+          <ion-card-content>
+            <div class="kpi-topline">
+              <div class="kpi-icon">
+                <ion-icon [name]="card.icon"></ion-icon>
+              </div>
+              <span class="kpi-title">{{ card.title }}</span>
+            </div>
+
+            <div class="kpi-value-row">
+              <h2>{{ card.value }}</h2>
+              <span class="kpi-badge" [ngClass]="'tone-' + card.tone">
+                {{ card.tone === 'positive' ? 'Healthy' : card.tone === 'caution' ? 'Watch' : 'Steady' }}
+              </span>
+            </div>
+
+            <ion-text class="kpi-detail">{{ card.detail }}</ion-text>
+            <div class="kpi-bar">
+              <span></span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
   </section>
 
   <!-- Full Workflow Details -->
