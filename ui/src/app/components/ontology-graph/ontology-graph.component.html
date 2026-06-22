@@ -11,29 +11,25 @@
           </marker>
         </defs>
 
-        @for (relationship of ontology.relationships ?? []; track relationship.id) {
-          @if (ontology.entities && ontology.entities.length) {
-            @if (entityIndex(relationship.fromEntityId) >= 0 && entityIndex(relationship.toEntityId) >= 0) {
-              <line
-                [attr.x1]="nodeX(entityIndex(relationship.fromEntityId)) + 70"
-                [attr.y1]="nodeY(entityIndex(relationship.fromEntityId))"
-                [attr.x2]="nodeX(entityIndex(relationship.toEntityId)) - 70"
-                [attr.y2]="nodeY(entityIndex(relationship.toEntityId))"
-                stroke="#45658f"
-                stroke-width="2"
-                marker-end="url(#arrow)"
-              ></line>
-              <text
-                [attr.x]="(nodeX(entityIndex(relationship.fromEntityId)) + nodeX(entityIndex(relationship.toEntityId))) / 2"
-                [attr.y]="(nodeY(entityIndex(relationship.fromEntityId)) + nodeY(entityIndex(relationship.toEntityId))) / 2 - 8"
-                fill="#223856"
-                font-size="12"
-                text-anchor="middle"
-              >
-                {{ relationship.name }}
-              </text>
-            }
-          }
+        @for (line of relationshipLines(); track line.id) {
+          <line
+            [attr.x1]="line.x1"
+            [attr.y1]="line.y1"
+            [attr.x2]="line.x2"
+            [attr.y2]="line.y2"
+            stroke="#45658f"
+            stroke-width="2"
+            marker-end="url(#arrow)"
+          ></line>
+          <text
+            [attr.x]="line.labelX"
+            [attr.y]="line.labelY"
+            fill="#223856"
+            font-size="12"
+            text-anchor="middle"
+          >
+            {{ line.name }}
+          </text>
         }
 
         @for (entity of ontology.entities; track entity.id; let index = $index) {
