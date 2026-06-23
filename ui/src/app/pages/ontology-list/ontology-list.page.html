@@ -24,7 +24,12 @@
     </ion-fab-button>
   </ion-fab>
 
-  <ion-modal [isOpen]="bindModalOpen()" (didDismiss)="closeBindModal()">
+  <ion-modal
+    [isOpen]="bindModalOpen()"
+    (didDismiss)="closeBindModal()"
+    [initialBreakpoint]="0.92"
+    [breakpoints]="[0, 0.6, 0.92, 1]"
+  >
     <ng-template>
       <ion-content class="ion-padding">
         <div class="bind-modal-header">
@@ -38,71 +43,160 @@
           <p class="muted">Connect "{{ target.name }}" to a Fabric Workspace / Lakehouse in OneLake.</p>
         }
 
-        <ion-segment [value]="bindMode()" class="bind-segment">
-          <ion-segment-button value="existing" (click)="setBindMode('existing')">
-            <ion-label>Existing connection</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="new" (click)="setBindMode('new')">
-            <ion-label>New connection</ion-label>
-          </ion-segment-button>
-        </ion-segment>
+        @switch (bindPhase()) {
+          @case ('select') {
+            <ion-segment [value]="bindMode()" class="bind-segment">
+              <ion-segment-button value="existing" (click)="setBindMode('existing')">
+                <ion-label>Existing connection</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="new" (click)="setBindMode('new')">
+                <ion-label>New connection</ion-label>
+              </ion-segment-button>
+            </ion-segment>
 
-        @if (bindMode() === 'existing') {
-          @if (connections().length) {
-            <ion-radio-group [(ngModel)]="selectedConnectionId">
+            @if (bindMode() === 'existing') {
+              @if (connections().length) {
+                <ion-radio-group [(ngModel)]="selectedConnectionId">
+                  <ion-list>
+                    @for (connection of connections(); track connection.id) {
+                      <ion-item>
+                        <ion-label>
+                          <h3>{{ connection.name }}</h3>
+                          <p>{{ connection.type }} · {{ connection.itemName }}</p>
+                          <ion-note>Workspace {{ connection.workspaceId }}</ion-note>
+                        </ion-label>
+                        <ion-radio slot="end" [value]="connection.id"></ion-radio>
+                      </ion-item>
+                    }
+                  </ion-list>
+                </ion-radio-group>
+              } @else {
+                <ion-text class="muted">No existing connections. Create a new connection instead.</ion-text>
+              }
+            } @else {
               <ion-list>
-                @for (connection of connections(); track connection.id) {
-                  <ion-item>
-                    <ion-label>
-                      <h3>{{ connection.name }}</h3>
-                      <p>{{ connection.type }} · {{ connection.itemName }}</p>
-                      <ion-note>Workspace {{ connection.workspaceId }}</ion-note>
-                    </ion-label>
-                    <ion-radio slot="end" [value]="connection.id"></ion-radio>
-                  </ion-item>
-                }
+                <ion-item>
+                  <ion-label position="stacked">Connection name</ion-label>
+                  <ion-input [(ngModel)]="newConnection.name" placeholder="Sales Lakehouse"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Type</ion-label>
+                  <ion-select [(ngModel)]="newConnection.type" interface="popover">
+                    <ion-select-option value="lakehouse">Lakehouse</ion-select-option>
+                    <ion-select-option value="warehouse">Warehouse</ion-select-option>
+                    <ion-select-option value="sql-endpoint">SQL endpoint</ion-select-option>
+                    <ion-select-option value="view">View</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Fabric workspace ID</ion-label>
+                  <ion-input [(ngModel)]="newConnection.workspaceId" placeholder="00000000-0000-0000-0000-000000000000"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Lakehouse table / item</ion-label>
+                  <ion-input [(ngModel)]="newConnection.itemName" placeholder="sales_customers"></ion-input>
+                </ion-item>
               </ion-list>
-            </ion-radio-group>
-          } @else {
-            <ion-text class="muted">No existing connections. Create a new connection instead.</ion-text>
-          }
-        } @else {
-          <ion-list>
-            <ion-item>
-              <ion-label position="stacked">Connection name</ion-label>
-              <ion-input [(ngModel)]="newConnection.name" placeholder="Sales Lakehouse"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-label position="stacked">Type</ion-label>
-              <ion-select [(ngModel)]="newConnection.type" interface="popover">
-                <ion-select-option value="lakehouse">Lakehouse</ion-select-option>
-                <ion-select-option value="warehouse">Warehouse</ion-select-option>
-                <ion-select-option value="sql-endpoint">SQL endpoint</ion-select-option>
-                <ion-select-option value="view">View</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <ion-item>
-              <ion-label position="stacked">Fabric workspace ID</ion-label>
-              <ion-input [(ngModel)]="newConnection.workspaceId" placeholder="00000000-0000-0000-0000-000000000000"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-label position="stacked">Lakehouse table / item</ion-label>
-              <ion-input [(ngModel)]="newConnection.itemName" placeholder="sales_customers"></ion-input>
-            </ion-item>
-          </ion-list>
-        }
+            }
 
-        @if (bindMessage) {
-          <ion-text class="muted bind-message">{{ bindMessage }}</ion-text>
-        }
+            @if (bindMessage) {
+              <ion-text class="muted bind-message">{{ bindMessage }}</ion-text>
+            }
 
-        <ion-button expand="block" [disabled]="bindBusy()" (click)="confirmBinding()">
-          @if (bindBusy()) {
-            <ion-spinner slot="start" name="dots"></ion-spinner>
+            <ion-button expand="block" [disabled]="bindBusy()" (click)="confirmBinding()">
+              @if (bindBusy()) {
+                <ion-spinner slot="start" name="dots"></ion-spinner>
+              }
+              {{ bindMode() === 'new' ? 'Create connection & run IT agent' : 'Bind connection & run IT agent' }}
+            </ion-button>
+            <ion-button expand="block" fill="clear" [disabled]="bindBusy()" (click)="closeBindModal()">Cancel</ion-button>
           }
-          {{ bindMode() === 'new' ? 'Create connection & bind' : 'Bind connection' }}
-        </ion-button>
-        <ion-button expand="block" fill="clear" [disabled]="bindBusy()" (click)="closeBindModal()">Cancel</ion-button>
+
+          @case ('running') {
+            <div class="agent-running">
+              <ion-spinner name="crescent"></ion-spinner>
+              <h3>IT Data Binder agent is running</h3>
+              <p class="muted">{{ bindMessage }}</p>
+              <p class="muted">Mapping every business entity and property to Fabric tables and fields…</p>
+            </div>
+          }
+
+          @case ('review') {
+            @if (boundConnection(); as connection) {
+              <ion-text class="muted bind-message">
+                <ion-icon name="sparklesOutline"></ion-icon>
+                Mapped to <strong>{{ connection.name }}</strong> ({{ connection.type }} · {{ connection.itemName }})
+              </ion-text>
+            }
+
+            @if (agentReply()) {
+              <div class="agent-reply">
+                <strong>Agent summary{{ agentDelivered() ? '' : ' (stub mode)' }}</strong>
+                <pre>{{ agentReply() }}</pre>
+              </div>
+            }
+
+            @if (submitted()) {
+              <div class="bind-success">
+                <ion-icon name="checkmarkCircleOutline"></ion-icon>
+                <p>{{ bindMessage }}</p>
+              </div>
+              <ion-button expand="block" (click)="closeBindModal()">Done</ion-button>
+            } @else {
+              <p class="muted">Review and adjust the auto-generated mappings, then save &amp; submit for admin deployment.</p>
+
+              @for (entity of reviewEntities(); track entity.entityId) {
+                <div class="review-entity">
+                  <ion-item>
+                    <ion-label position="stacked">{{ entity.entityName }} → {{ entity.isView ? 'view' : 'table' }}</ion-label>
+                    <ion-input
+                      [ngModel]="entity.table"
+                      (ngModelChange)="updateEntityTable(entity.entityId, $event)"
+                      placeholder="lakehouse table"
+                    ></ion-input>
+                  </ion-item>
+                  @for (property of entity.properties; track property.propertyId) {
+                    <ion-item class="review-property">
+                      <ion-label position="stacked">{{ property.name }} → field</ion-label>
+                      <ion-input
+                        [ngModel]="property.field"
+                        (ngModelChange)="updatePropertyField(entity.entityId, property.propertyId, $event)"
+                        placeholder="source_field"
+                      ></ion-input>
+                    </ion-item>
+                  }
+                </div>
+              }
+
+              <ion-item class="reprompt">
+                <ion-label position="stacked">Re-prompt the IT agent (optional)</ion-label>
+                <ion-textarea
+                  [(ngModel)]="repromptText"
+                  [autoGrow]="true"
+                  placeholder="e.g. map to the curated gold tables and prefix fields with dim_"
+                ></ion-textarea>
+              </ion-item>
+
+              @if (bindMessage) {
+                <ion-text class="muted bind-message">{{ bindMessage }}</ion-text>
+              }
+
+              <ion-button expand="block" fill="outline" [disabled]="bindBusy()" (click)="rerunAgent()">
+                @if (bindBusy()) {
+                  <ion-spinner slot="start" name="dots"></ion-spinner>
+                }
+                Re-run IT agent
+              </ion-button>
+              <ion-button expand="block" [disabled]="bindBusy()" (click)="saveAndSubmit()">
+                @if (bindBusy()) {
+                  <ion-spinner slot="start" name="dots"></ion-spinner>
+                }
+                Save &amp; submit for deployment
+              </ion-button>
+              <ion-button expand="block" fill="clear" [disabled]="bindBusy()" (click)="closeBindModal()">Close</ion-button>
+            }
+          }
+        }
       </ion-content>
     </ng-template>
   </ion-modal>

@@ -40,6 +40,10 @@ export class FabricService {
     return this.sources;
   }
 
+  async getDataSourceById(id: string): Promise<DataSource | undefined> {
+    return this.sources.find((source) => source.id === id);
+  }
+
   async createDataSource(payload: Omit<DataSource, 'id'>): Promise<DataSource> {
     const slug = payload.name
       .toLowerCase()

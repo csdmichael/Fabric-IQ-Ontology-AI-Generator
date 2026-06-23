@@ -18,6 +18,12 @@ ontologyRouter.put('/:id', requirePermission('ontology:edit'), (request, respons
 ontologyRouter.delete('/:id', requirePermission('ontology:edit'), (request, response) => controller.remove(request as Request<IdParams>, response));
 
 ontologyRouter.post(
+  '/:id/auto-bind',
+  requirePermission('ontology:bind-data'),
+  (request, response) => controller.autoBind(request as Request<IdParams, unknown, { connectionId?: string; guidance?: string }>, response)
+);
+
+ontologyRouter.post(
   '/:id/submit-for-binding',
   requirePermission('ontology:submit-for-binding'),
   (request, response) => controller.submitForBinding(request as Request<IdParams, unknown, { note?: string }>, response)
