@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonButton,
@@ -14,9 +14,10 @@ import {
   IonText
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { createOutline, trashOutline } from 'ionicons/icons';
+import { createOutline, gitNetworkOutline, trashOutline } from 'ionicons/icons';
 
 import { Ontology } from '../../models/ontology.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-ontology-card',
@@ -26,14 +27,25 @@ import { Ontology } from '../../models/ontology.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OntologyCardComponent {
+  private readonly auth = inject(AuthService);
+
   @Input({ required: true }) ontology!: Ontology;
   @Output() readonly delete = new EventEmitter<string>();
+  @Output() readonly bind = new EventEmitter<Ontology>();
+
+  protected get canBind(): boolean {
+    return this.auth.hasAnyPermission('ontology:bind-data', 'agent:ontology-data-binder');
+  }
 
   constructor() {
-    addIcons({ createOutline, trashOutline });
+    addIcons({ createOutline, gitNetworkOutline, trashOutline });
   }
 
   protected onDelete(): void {
     this.delete.emit(this.ontology.id);
+  }
+
+  protected onBind(): void {
+    this.bind.emit(this.ontology);
   }
 }

@@ -40,6 +40,22 @@ export class FabricService {
     return this.sources;
   }
 
+  async createDataSource(payload: Omit<DataSource, 'id'>): Promise<DataSource> {
+    const slug = payload.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    const dataSource: DataSource = {
+      id: `${slug || 'datasource'}-${Date.now()}`,
+      name: payload.name,
+      type: payload.type,
+      workspaceId: payload.workspaceId || this.config.workspaceId || 'local-workspace',
+      itemName: payload.itemName
+    };
+    this.sources.push(dataSource);
+    return dataSource;
+  }
+
   async getConfig(): Promise<FabricConfig> {
     return this.config;
   }

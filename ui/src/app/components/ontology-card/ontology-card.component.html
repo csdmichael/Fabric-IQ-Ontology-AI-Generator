@@ -12,6 +12,12 @@
         <ion-icon slot="start" name="createOutline"></ion-icon>
         Edit
       </ion-button>
+      @if (canBind) {
+        <ion-button color="primary" fill="clear" (click)="onBind()">
+          <ion-icon slot="start" name="gitNetworkOutline"></ion-icon>
+          Bind to OneLake
+        </ion-button>
+      }
       <ion-button color="danger" fill="clear" (click)="onDelete()">
         <ion-icon slot="start" name="trashOutline"></ion-icon>
         Delete

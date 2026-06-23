@@ -32,6 +32,10 @@ export class DatasourceService {
     return this.http.get<DataSourceConnection[]>(this.baseUrl);
   }
 
+  createDataSource(payload: Omit<DataSourceConnection, 'id'>) {
+    return this.http.post<DataSourceConnection>(this.baseUrl, payload);
+  }
+
   getSettings() {
     return this.http.get<FabricConnectionSettings>(`${this.baseUrl}/config`);
   }

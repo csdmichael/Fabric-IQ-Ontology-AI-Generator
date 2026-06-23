@@ -63,3 +63,24 @@
     }
   }
 }
+
+.bind-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+}
+
+.bind-segment {
+  margin: 1rem 0;
+}
+
+.bind-message {
+  display: block;
+  margin: 1rem 0 0.5rem;
+}
