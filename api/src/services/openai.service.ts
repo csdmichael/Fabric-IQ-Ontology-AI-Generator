@@ -124,29 +124,18 @@ export class OpenAiService {
   ): Promise<{ entities: OntologyEntity[]; promptSummary: string }> {
     if (!this.client) throw new Error('OpenAI client not initialized');
 
-    const prompt = `You are an expert data architect. Analyze this business domain and extract 7-10 key business entities:
+    const prompt = `You are an expert data architect. Extract 7-8 core business entities from this domain:
 
 "${businessCase}"
 
-Respond with ONLY a JSON object (no markdown, no code blocks) with this exact structure:
-{
-  "entities": [
-    {
-      "name": "EntityName",
-      "description": "Brief description of what this entity represents",
-      "properties": [
-        {"name": "id", "type": "string"},
-        {"name": "description_field", "type": "string"}
-      ]
-    }
-  ]
-}
-
-Generate diverse entities that represent the core business concepts. Include at least 7 entities.`;
+Return a JSON object with this exact structure (keep descriptions under 12 words, 3-4 properties per entity):
+{"entities":[{"name":"EntityName","description":"Short description","properties":[{"name":"id","type":"string"},{"name":"field","type":"string"}]}]}`;
 
     const response = await (this.client as any).chat.completions.create({
       model: environment.azureOpenAiDeployment,
-      max_tokens: 2048,
+      max_tokens: 1024,
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
       messages: [
         {
           role: 'user',
