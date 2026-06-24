@@ -8,6 +8,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonChip,
   IonContent,
   IonIcon,
   IonInput,
@@ -28,7 +29,7 @@ import { addOutline, chevronBack, chevronForward, cloudUploadOutline, documentTe
 import { AgentChatComponent } from '../../components/agent-chat/agent-chat.component';
 import { EntityListComponent } from '../../components/entity-list/entity-list.component';
 import { OntologyGraphComponent } from '../../components/ontology-graph/ontology-graph.component';
-import { Ontology, OntologyBinding, OntologyEntity, OntologyRelationship } from '../../models/ontology.model';
+import { Ontology, OntologyBinding, OntologyEntity, OntologyRelationship, ontologyStatusLabel } from '../../models/ontology.model';
 import { AuthService } from '../../services/auth.service';
 import { DatasourceService, DataSourceConnection, FabricConnectionSettings } from '../../services/datasource.service';
 import { OntologyExportService } from '../../services/ontology-export.service';
@@ -59,6 +60,7 @@ import { WorkflowService } from '../../services/workflow.service';
     IonIcon,
     IonText,
     IonNote,
+    IonChip,
     IonSegment,
     IonSegmentButton,
     EntityListComponent,
@@ -237,6 +239,51 @@ export class OntologyEditorPage implements OnInit {
     const entity = this.ontology.entities.find((item) => item.id === entityId);
     const property = entity?.properties.find((item) => item.id === propertyId);
     return property?.name ?? propertyId;
+  }
+
+  /** Human-friendly label for the current ontology lifecycle status. */
+  protected statusLabel(): string {
+    return ontologyStatusLabel(this.ontology.status);
+  }
+
+  /** Ionic chip color reflecting how far the ontology has progressed. */
+  protected statusColor(): string {
+    switch (this.ontology.status) {
+      case 'published':
+        return 'success';
+      case 'awaiting_deployment':
+      case 'deploying':
+        return 'tertiary';
+      case 'binding_in_progress':
+        return 'secondary';
+      case 'awaiting_data_binding':
+        return 'warning';
+      case 'rejected':
+        return 'danger';
+      default:
+        return 'medium';
+    }
+  }
+
+  /** The OneLake table or view an entity is bound to, if any. */
+  protected entityBoundSource(entity: OntologyEntity): string {
+    if (entity.sourceView) {
+      return `${entity.sourceView} (view)`;
+    }
+    if (entity.sourceTable) {
+      return `${entity.sourceTable} (table)`;
+    }
+    return 'Not bound yet';
+  }
+
+  /** Whether any entity or property in the ontology has a OneLake binding. */
+  protected hasAnyBinding(): boolean {
+    return this.ontology.entities.some(
+      (entity) =>
+        !!entity.sourceTable ||
+        !!entity.sourceView ||
+        entity.properties.some((property) => !!property.sourceColumn)
+    );
   }
 
   protected saveOntology(): void {

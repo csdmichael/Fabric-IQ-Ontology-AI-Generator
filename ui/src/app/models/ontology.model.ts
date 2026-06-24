@@ -10,6 +10,26 @@ export type OntologyStatus =
   | 'published'
   | 'rejected';
 
+/** Human-friendly labels for each ontology lifecycle status. */
+export const ONTOLOGY_STATUS_LABELS: Record<OntologyStatus, string> = {
+  draft: 'Draft',
+  generated: 'Generated',
+  awaiting_data_binding: 'Awaiting data binding',
+  binding_in_progress: 'Bound to data',
+  awaiting_deployment: 'Ready to deploy',
+  deploying: 'Deploying',
+  published: 'Published',
+  rejected: 'Rejected'
+};
+
+/** Returns a readable label for an ontology status, falling back to the raw value. */
+export function ontologyStatusLabel(status?: OntologyStatus | string): string {
+  if (!status) {
+    return 'Unknown';
+  }
+  return ONTOLOGY_STATUS_LABELS[status as OntologyStatus] ?? status;
+}
+
 export interface OntologyProperty {
   id: string;
   name: string;

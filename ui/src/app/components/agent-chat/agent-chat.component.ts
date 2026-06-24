@@ -6,11 +6,11 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonInput,
   IonItem,
   IonLabel,
   IonNote,
-  IonSpinner
+  IonSpinner,
+  IonTextarea
 } from '@ionic/angular/standalone';
 
 import { AgentChatService, AgentKey } from '../../services/agent-chat.service';
@@ -32,7 +32,7 @@ interface ChatTurn {
     IonCardContent,
     IonItem,
     IonLabel,
-    IonInput,
+    IonTextarea,
     IonButton,
     IonSpinner,
     IonNote

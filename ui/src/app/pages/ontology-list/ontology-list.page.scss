@@ -103,6 +103,26 @@
   }
 }
 
+.bind-progress {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  ion-progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  ion-note {
+    font-size: 0.85rem;
+    text-align: center;
+  }
+}
+
 .agent-reply {
   background: var(--ion-color-light, #f4f5f8);
   border-radius: 8px;

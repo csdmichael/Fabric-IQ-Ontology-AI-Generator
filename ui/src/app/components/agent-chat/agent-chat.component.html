@@ -23,11 +23,13 @@
 
     <ion-item>
       <ion-label position="stacked">Message</ion-label>
-      <ion-input
+      <ion-textarea
         [value]="draft()"
         placeholder="Ask the agent..."
+        [autoGrow]="true"
+        [rows]="3"
         (ionInput)="draft.set($any($event).detail.value ?? '')"
-      ></ion-input>
+      ></ion-textarea>
     </ion-item>
     <ion-button expand="block" (click)="send()" [disabled]="busy() || !draft().trim()">
       Send

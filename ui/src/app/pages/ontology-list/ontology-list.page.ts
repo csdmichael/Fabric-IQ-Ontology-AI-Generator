@@ -13,6 +13,7 @@ import {
   IonList,
   IonModal,
   IonNote,
+  IonProgressBar,
   IonRadio,
   IonRadioGroup,
   IonSegment,
@@ -65,6 +66,7 @@ interface ReviewEntity {
     IonList,
     IonModal,
     IonNote,
+    IonProgressBar,
     IonRadio,
     IonRadioGroup,
     IonSegment,
@@ -103,6 +105,11 @@ export class OntologyListPage implements OnInit {
   protected readonly reviewEntities = signal<ReviewEntity[]>([]);
   protected readonly submitted = signal(false);
   protected repromptText = '';
+
+  /** Animated progress (0-1) shown while the IT data binder agent maps the ontology. */
+  protected readonly bindProgress = signal(0);
+  protected readonly bindProgressLabel = signal('');
+  private progressTimer?: ReturnType<typeof setInterval>;
 
   protected newConnection: Omit<DataSourceConnection, 'id'> = this.createEmptyConnection();
 
@@ -163,6 +170,7 @@ export class OntologyListPage implements OnInit {
   }
 
   protected closeBindModal(): void {
+    this.stopProgress();
     this.bindModalOpen.set(false);
     this.bindTarget.set(undefined);
     this.bindPhase.set('select');
@@ -300,6 +308,7 @@ export class OntologyListPage implements OnInit {
     this.bindPhase.set('running');
     this.bindBusy.set(true);
     this.bindMessage = `IT data binder agent is mapping "${ontology.name}" to ${connection.name}...`;
+    this.startProgress(ontology);
     this.cdr.markForCheck();
 
     this.workflow
@@ -307,6 +316,7 @@ export class OntologyListPage implements OnInit {
       .pipe(finalize(() => this.bindBusy.set(false)))
       .subscribe({
         next: (result) => {
+          this.stopProgress(true);
           this.bindTarget.set(result.ontology);
           this.ontologies = this.ontologies.map((item) => (item.id === result.ontology.id ? result.ontology : item));
           this.agentReply.set(result.agent.reply);
@@ -318,11 +328,50 @@ export class OntologyListPage implements OnInit {
           this.cdr.markForCheck();
         },
         error: () => {
+          this.stopProgress();
           this.bindPhase.set('select');
           this.bindMessage = 'The IT agent could not complete the mapping. Please try again.';
           this.cdr.markForCheck();
         }
       });
+  }
+
+  /** Animates the binding progress bar from 0 toward 0.9 while the agent runs. */
+  private startProgress(ontology: Ontology): void {
+    this.stopProgress();
+    const entityNames = ontology.entities.map((entity) => entity.name);
+    let index = 0;
+    this.bindProgress.set(0.05);
+    this.bindProgressLabel.set(
+      entityNames.length ? `Mapping ${entityNames[0]}…` : 'Preparing mapping…'
+    );
+    this.progressTimer = setInterval(() => {
+      const current = this.bindProgress();
+      if (current < 0.9) {
+        this.bindProgress.set(Math.min(0.9, current + 0.08));
+        if (entityNames.length) {
+          index = (index + 1) % entityNames.length;
+          this.bindProgressLabel.set(`Mapping ${entityNames[index]} entities and properties…`);
+        }
+        this.cdr.markForCheck();
+      }
+    }, 450);
+  }
+
+  /** Stops the progress animation, optionally completing the bar to 100%. */
+  private stopProgress(complete = false): void {
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+      this.progressTimer = undefined;
+    }
+    if (complete) {
+      this.bindProgress.set(1);
+      this.bindProgressLabel.set('Mapping complete');
+    } else {
+      this.bindProgress.set(0);
+      this.bindProgressLabel.set('');
+    }
+    this.cdr.markForCheck();
   }
 
   private buildReviewEntities(ontology: Ontology): ReviewEntity[] {

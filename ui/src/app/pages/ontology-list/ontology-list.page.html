@@ -117,7 +117,10 @@
               <ion-spinner name="crescent"></ion-spinner>
               <h3>IT Data Binder agent is running</h3>
               <p class="muted">{{ bindMessage }}</p>
-              <p class="muted">Mapping every business entity and property to Fabric tables and fields…</p>
+              <div class="bind-progress">
+                <ion-progress-bar [value]="bindProgress()"></ion-progress-bar>
+                <ion-note>{{ bindProgressLabel() || 'Mapping every business entity and property to OneLake tables, views, and columns…' }}</ion-note>
+              </div>
             </div>
           }
 

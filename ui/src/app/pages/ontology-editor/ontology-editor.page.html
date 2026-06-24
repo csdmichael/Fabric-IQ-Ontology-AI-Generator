@@ -23,6 +23,10 @@
 
     <!-- Step Content -->
     <section class="step-content">
+      <div class="ontology-status-bar">
+        <span class="status-caption">Ontology status</span>
+        <ion-chip [color]="statusColor()">{{ statusLabel() }}</ion-chip>
+      </div>
       <!-- Step 1: Metadata -->
       @if (currentStep() === 1) {
         <h2 class="step-title">{{ steps[0].title }}</h2>
@@ -159,8 +163,51 @@
               <strong>Relationships:</strong> {{ (ontology.relationships ?? []).length }}
             </div>
             <div style="margin-bottom: 1rem;">
-              <strong>Status:</strong> <ion-note>{{ ontology.status }}</ion-note>
+              <strong>Status:</strong> <ion-chip [color]="statusColor()">{{ statusLabel() }}</ion-chip>
             </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>OneLake Data Bindings</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (hasAnyBinding()) {
+              <p class="step-description">
+                Each business entity is mapped to a OneLake table or view, and each property is mapped to a column.
+              </p>
+              @for (entity of ontology.entities; track entity.id) {
+                <div class="binding-entity">
+                  <div class="binding-entity-header">
+                    <strong>{{ entity.name }}</strong>
+                    <ion-chip [color]="(entity.sourceTable || entity.sourceView) ? 'secondary' : 'medium'" outline="true">
+                      {{ entityBoundSource(entity) }}
+                    </ion-chip>
+                  </div>
+                  <ion-list lines="full">
+                    @for (property of entity.properties; track property.id) {
+                      <ion-item>
+                        <ion-label>
+                          <h3>{{ property.name }}</h3>
+                          <p>{{ property.type }}</p>
+                        </ion-label>
+                        @if (property.sourceColumn) {
+                          <ion-note slot="end" color="secondary">{{ property.sourceColumn }}</ion-note>
+                        } @else {
+                          <ion-note slot="end" color="medium">unmapped</ion-note>
+                        }
+                      </ion-item>
+                    }
+                  </ion-list>
+                </div>
+              }
+            } @else {
+              <ion-note color="medium">
+                Not bound to OneLake yet. Use "Bind to Lakehouse" from My Ontologies to let the IT data binder map
+                entities and properties to OneLake tables, views, and columns.
+              </ion-note>
+            }
           </ion-card-content>
         </ion-card>
 
@@ -234,7 +281,7 @@
     <section class="page-section">
       <h1>Ontology Studio (Advanced)</h1>
       <p class="muted">{{ statusMessage }}</p>
-      <ion-note>Status: {{ ontology.status }} · {{ ontology.bindings?.length ?? 0 }} bindings</ion-note>
+      <ion-note>Status: {{ statusLabel() }} · {{ ontology.bindings?.length ?? 0 }} bindings</ion-note>
     </section>
 
     <section class="page-section editor-grid">
