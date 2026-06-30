@@ -72,6 +72,21 @@ The agentic workflow combines human decision-makers with specialized AI agents. 
 
 This separation ensures agentic acceleration without removing human accountability at critical workflow checkpoints.
 
+## Roadmap — Ontology Discovery Agent (per domain)
+
+> **Coming soon.** Today the workflow starts from a blank-page prompt. The next step is to start from **AI-proposed ontologies** so business groups review candidates instead of authoring from scratch.
+
+A planned **Ontology Discovery Agent**, specialized per business domain (Manufacturing, Marketing, HR, Legal, Finance, and more), is **grounded by the organization's own knowledge sources** — SharePoint, SAP, databases, data lakes, and document stores. Each domain agent mines those sources and proposes the **top 10 candidate ontologies** most valuable to that domain.
+
+Proposed flow:
+
+1. **Discover** — The domain-specialized agent scans the organization's knowledge bases (SharePoint, SAP, databases, etc.) for its domain.
+2. **Suggest Top 10** — The agent ranks and proposes the 10 highest-value candidate ontologies for the domain.
+3. **Review & Promote** — The relevant business group reviews the suggestions and promotes selected candidates to **draft** (review / update).
+4. **Bind & Publish** — Each promoted draft continues through the existing agentic workflow — IT binds it to Fabric data, and Admins approve and publish it to Microsoft Fabric.
+
+This keeps humans in control of which ontologies are promoted while letting domain agents surface high-value candidates automatically. It is highlighted on the Home screen under **Future Vision: Ontology Discovery Agent — Per Domain**.
+
 ## Deployed Endpoints
 
 | Component | URL |

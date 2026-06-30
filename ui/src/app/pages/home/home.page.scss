@@ -559,6 +559,203 @@
   }
 }
 
+// Future Vision: Ontology Discovery Agent (Roadmap Highlight)
+.discovery-vision-section {
+  .discovery-vision-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    padding: 2.5rem;
+    color: #f8fafc;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, #0f766e 100%);
+    box-shadow: 0 24px 60px rgba(76, 29, 149, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -100px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(45, 212, 191, 0.35) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+  }
+
+  .vision-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.18);
+    border: 1px solid rgba(45, 212, 191, 0.45);
+    color: #5eead4;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+
+    ion-icon {
+      font-size: 1.05rem;
+    }
+  }
+
+  .vision-heading {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    margin-bottom: 1.75rem;
+
+    .vision-icon {
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #a5f3fc;
+    }
+
+    h2 {
+      color: #ffffff;
+      margin: 0 0 0.6rem;
+      font-size: 1.5rem;
+    }
+
+    .vision-lead {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: rgba(241, 245, 249, 0.92);
+
+      strong {
+        color: #5eead4;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .vision-subtitle {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(226, 232, 240, 0.7);
+    margin-bottom: 0.6rem;
+  }
+
+  .vision-domains,
+  .vision-sources {
+    margin-bottom: 1.5rem;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  ion-chip {
+    margin: 0;
+    height: 34px;
+    font-weight: 600;
+    font-size: 0.85rem;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+
+    &.domain-chip {
+      --background: rgba(165, 180, 252, 0.18);
+      --color: #e0e7ff;
+      border: 1px solid rgba(165, 180, 252, 0.35);
+    }
+
+    &.source-chip {
+      --background: rgba(45, 212, 191, 0.16);
+      --color: #ccfbf1;
+      border: 1px solid rgba(45, 212, 191, 0.35);
+    }
+  }
+
+  .vision-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+
+    .vision-step {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+
+      .step-icon {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 0.75rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        background: rgba(45, 212, 191, 0.18);
+        color: #5eead4;
+      }
+
+      h4 {
+        margin: 0 0 0.4rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: rgba(226, 232, 240, 0.85);
+      }
+    }
+
+    .vision-arrow {
+      align-self: center;
+      font-size: 1.3rem;
+      color: rgba(94, 234, 212, 0.8);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 900px) {
+      flex-direction: column;
+
+      .vision-arrow {
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .discovery-vision-card {
+      padding: 1.75rem 1.25rem;
+    }
+
+    .vision-heading {
+      flex-direction: column;
+    }
+  }
+}
+
 // Role-Based Quick Actions
 .role-actions-section {
   background: white;

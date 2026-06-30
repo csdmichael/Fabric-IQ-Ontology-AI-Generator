@@ -13,7 +13,7 @@ import {
   IonText
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { sparklesOutline, cubeOutline, rocketOutline, shieldCheckmarkOutline, documentOutline, settingsOutline, chevronForwardOutline, layersOutline, logoGithub } from 'ionicons/icons';
+import { sparklesOutline, cubeOutline, rocketOutline, shieldCheckmarkOutline, documentOutline, settingsOutline, chevronForwardOutline, layersOutline, logoGithub, bulbOutline, searchOutline, businessOutline, megaphoneOutline, peopleOutline, documentLockOutline, cashOutline, serverOutline, arrowForwardOutline, gitNetworkOutline, checkmarkDoneOutline } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { Permission } from '../../models/auth.model';
 import { Ontology } from '../../models/ontology.model';
@@ -53,7 +53,7 @@ export class HomePage implements OnInit {
   private readonly lastRefresh = signal<Date | null>(null);
 
   constructor() {
-    addIcons({sparklesOutline,chevronForwardOutline,cubeOutline,rocketOutline,documentOutline,settingsOutline,layersOutline,shieldCheckmarkOutline,logoGithub});
+    addIcons({sparklesOutline,chevronForwardOutline,cubeOutline,rocketOutline,layersOutline,bulbOutline,searchOutline,businessOutline,megaphoneOutline,peopleOutline,documentLockOutline,cashOutline,serverOutline,arrowForwardOutline,gitNetworkOutline,checkmarkDoneOutline,shieldCheckmarkOutline,documentOutline,settingsOutline,logoGithub});
   }
 
   // Expose auth service for template
